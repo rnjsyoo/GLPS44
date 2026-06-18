@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLPS 44 HQ · 어시 보드</title>
+<style>
+  :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.5}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 56px}
+  header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
+    padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:20px}
+  header h1{margin:0;font-size:18px;font-weight:700}
+  header .sub{font-size:12px;opacity:.82;margin-top:2px}
+  .meta{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .chip{font-size:12.5px;background:rgba(255,255,255,.16);padding:6px 11px;border-radius:9px;white-space:nowrap}
+  .chip b{font-weight:700}
+  h2.sec{font-size:15px;color:var(--navy);font-weight:700;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .bcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:300px}
+  .bcard .bh{padding:11px 14px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+  .bcard .bh .i{font-size:18px}
+  .bcard.green .bh{color:#27500A;background:#eef6e3} .bcard.amber .bh{color:#854F0B;background:#fbf0d8}
+  .bcard iframe{border:0;width:100%;flex:1;min-height:260px}
+  .ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:13px;text-align:center;padding:20px}
+  .ph .k{font-size:12px;background:#f0d4d4;color:#9c3030;padding:3px 9px;border-radius:7px;font-family:monospace}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 6px 4px}
+  details{border-radius:10px}
+  summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:500}
+  summary::-webkit-details-marker{display:none}
+  summary:hover{background:#f7f9fc}
+  summary .i{font-size:18px;width:20px;text-align:center}
+  summary .lbl{flex:1}
+  summary .tag{font-size:11px;color:var(--muted);background:#eef1f6;padding:2px 9px;border-radius:7px}
+  summary .chev{color:var(--muted);font-size:13px}
+  .body{padding:4px 8px 10px}
+  .body iframe{border:1px solid var(--line);border-radius:8px;width:100%;height:520px}
+  .body .open{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--blue);text-decoration:none;margin:2px 0 8px}
+  .pii summary .tag{background:#fdeccb;color:#8a6411}
+  .miss{padding:14px;color:var(--muted);font-size:13px;text-align:center}
+  .miss .k{font-family:monospace;background:#f0d4d4;color:#9c3030;padding:2px 7px;border-radius:6px}
+  .note{font-size:12px;color:var(--muted);margin:8px 2px 0}
+  footer{margin-top:30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+  @media(max-width:680px){.board{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">▦</div>
+    <div>
+      <h1>GLPS 44 HQ · 어시 보드</h1>
+      <div class="sub" id="campsub">GLPS 2026 Summer</div>
+    </div>
+    <div class="meta">
+      <span class="chip" id="chipDate">—</span>
+      <span class="chip" id="chipWeek">—</span>
+      <span class="chip" id="chipPeriod">—</span>
+      <span class="chip" id="chipClock">—</span>
+    </div>
+  </header>
+
+  <h2 class="sec">📌 오늘의 보드</h2>
+  <div class="board">
+    <div class="bcard green">
+      <div class="bh"><span class="i">🌅</span> 오늘 루틴 업무</div>
+      <div id="board_routine"></div>
+    </div>
+    <div class="bcard amber">
+      <div class="bh"><span class="i">🚪</span> 현재 외부 학생 (외출·외박)</div>
+      <div id="board_outside"></div>
+    </div>
+  </div>
+  <p class="note">※ 두 칸은 시트의 ‘오늘 자동필터’ 탭을 임베드합니다. 시트가 어시에게만 공유돼 있으면 로그인한 어시만 내용을 볼 수 있어요.</p>
+
+  <h2 class="sec">📝 입력 (구글폼)</h2>
+  <div class="grid" id="forms"></div>
+
+  <h2 class="sec">📊 조회 · 시트</h2>
+  <div class="grid" id="sheets"></div>
+
+  <footer>
+    학생 개인정보는 구글 시트 공유 권한(어시 한정)으로 보호됩니다.<br>
+    GLPS 44 HQ
+  </footer>
+</div>
+
+<script>
+/* ====================================================================
+   설정 — 여기 links 의 "" 안에 구글폼/시트 주소를 붙여넣으세요.
+   · 폼: 폼 열어서 주소창 URL (…/viewform) 그대로
+   · 시트: 보여줄 탭을 연 상태의 URL (…/edit#gid=숫자) — gid 포함되게
+   ==================================================================== */
+const CONFIG = {
+  camp:  { name:"GLPS 2026 Summer (GLPS 44)", start:"2026-07-18", end:"2026-08-08" },
+  /* 2단계(시간표): 교시별 시간. 비우면 '시간표 준비중'. 예: {no:1,start:"09:00",end:"09:45"} */
+  periods: [],
+  links: {
+    board_routine: "",   // 오늘 루틴 (스마트 탭)
+    board_outside: "",   // 현재 외부 학생 (스마트 탭)
+    form_card:     "",   // 카드 발급 폼
+    form_outing:   "",   // 외출외박 신청 폼
+    form_eop_catch:"",   // (선택) EOP 적발 폼
+    form_eop_pass: "",   // (선택) EOP 통과 폼
+    sheet_card:    "",   // 학생별 카드 누계 조회
+    sheet_outing:  "",   // 외출외박 처리 현황
+    sheet_routine: "",   // 루틴·등대지기
+    sheet_weekend: "",   // 주말 업무 배정
+    sheet_fire:    "",   // 화재대피 구역
+    sheet_students:""    // 학생 반·호실·개인정보 (PII)
+  }
+};
+
+const FORMS = [
+  { key:"form_card",      icon:"🪪", title:"카드 발급 (Reward·Warning·Penalty)" },
+  { key:"form_outing",    icon:"📝", title:"외출외박 신청" },
+  { key:"form_eop_catch", icon:"⚠️", title:"EOP 적발", optional:true },
+  { key:"form_eop_pass",  icon:"✅", title:"EOP 통과", optional:true },
+];
+const SHEETS = [
+  { key:"sheet_card",     icon:"🔎", title:"학생별 카드 누계 조회" },
+  { key:"sheet_outing",   icon:"📋", title:"외출외박 처리 현황" },
+  { key:"sheet_routine",  icon:"🌅", title:"루틴 · 등대지기" },
+  { key:"sheet_weekend",  icon:"🎉", title:"주말 업무 배정" },
+  { key:"sheet_fire",     icon:"🧯", title:"화재대피 구역" },
+  { key:"sheet_students", icon:"🛏️", title:"학생 반·호실·개인정보", pii:true },
+];
+
+/* ---------- URL 변환 ---------- */
+function formEmbed(u){
+  if(!u) return "";
+  u = u.split("#")[0];
+  if(u.indexOf("/viewform")<0) u = u.replace(/\/edit.*$/,"") + "/viewform";
+  return u + (u.indexOf("?")<0 ? "?" : "&") + "embedded=true";
+}
+function parseSheet(u){
+  const id=(u.match(/\/d\/([a-zA-Z0-9-_]+)/)||[])[1]||"";
+  const gid=(u.match(/[#?&]gid=([0-9]+)/)||[])[1]||"";
+  return {id,gid};
+}
+function sheetEmbed(u){ const{id,gid}=parseSheet(u); if(!id)return""; return `https://docs.google.com/spreadsheets/d/${id}/preview`+(gid?`?gid=${gid}`:""); }
+function sheetOpen(u){ const{id,gid}=parseSheet(u); if(!id)return"#"; return `https://docs.google.com/spreadsheets/d/${id}/edit`+(gid?`?gid=${gid}`:""); }
+function isSet(v){ return v && v.trim() && !v.startsWith("PASTE"); }
+
+/* ---------- 보드 임베드 ---------- */
+function boardSlot(id, key){
+  const u = CONFIG.links[key];
+  const el = document.getElementById(id);
+  if(isSet(u)) el.innerHTML = `<iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`;
+  else el.innerHTML = `<div class="ph"><span>링크 미설정</span><span class="k">links.${key}</span><span>설정에 시트 주소를 넣으면 표시됩니다</span></div>`;
+}
+
+/* ---------- 폼/시트 카드 ---------- */
+function formCard(item){
+  const u = CONFIG.links[item.key], on=isSet(u);
+  const tag = item.optional ? "선택·폼" : "폼";
+  const inner = on
+    ? `<div class="body"><a class="open" href="${formEmbed(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${formEmbed(u)}" loading="lazy"></iframe></div>`
+    : `<div class="miss">링크 미설정 — <span class="k">links.${item.key}</span></div>`;
+  return `<div class="card"><details><summary><span class="i">${item.icon}</span><span class="lbl">${item.title}</span><span class="tag">${tag}</span><span class="chev">▾</span></summary>${inner}</details></div>`;
+}
+function sheetCard(item){
+  const u = CONFIG.links[item.key], on=isSet(u);
+  const cls = item.pii ? "card pii" : "card";
+  const tag = item.pii ? "🔒 개인정보·시트" : "시트";
+  const inner = on
+    ? `<div class="body"><a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe></div>`
+    : `<div class="miss">링크 미설정 — <span class="k">links.${item.key}</span></div>`;
+  return `<div class="${cls}"><details><summary><span class="i">${item.icon}</span><span class="lbl">${item.title}</span><span class="tag">${tag}</span><span class="chev">▾</span></summary>${inner}</details></div>`;
+}
+
+/* ---------- 날짜 · 주차 · 교시 ---------- */
+const DOW=["일","월","화","수","목","금","토"];
+function fmt(d){ return `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`; }
+function weekInfo(now){
+  const s=new Date(CONFIG.camp.start+"T00:00:00"), e=new Date(CONFIG.camp.end+"T23:59:59");
+  const day=Math.floor((now - s)/86400000);
+  if(now<s) return "캠프 시작 전";
+  if(now>e) return "캠프 종료";
+  if(day<=1) return "입소 주말";
+  const wk=Math.floor((day-2)/7)+1;
+  return (wk>=1&&wk<=3)? wk+"주차" : "캠프 기간";
+}
+function periodInfo(now){
+  if(!CONFIG.periods.length) return "시간표 준비중";
+  const hm=now.getHours()*60+now.getMinutes();
+  for(const p of CONFIG.periods){
+    const [sh,sm]=p.start.split(":").map(Number), [eh,em]=p.end.split(":").map(Number);
+    if(hm>=sh*60+sm && hm<=eh*60+em) return p.no+"교시";
+  }
+  return "수업 외 시간";
+}
+function tick(){
+  const now=new Date();
+  document.getElementById("campsub").textContent=CONFIG.camp.name;
+  document.getElementById("chipDate").innerHTML="📅 <b>"+fmt(now)+"</b>";
+  document.getElementById("chipWeek").innerHTML="🗓 <b>"+weekInfo(now)+"</b>";
+  document.getElementById("chipPeriod").innerHTML="⏰ <b>"+periodInfo(now)+"</b>";
+  document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5);
+}
+
+/* ---------- init ---------- */
+boardSlot("board_routine","board_routine");
+boardSlot("board_outside","board_outside");
+document.getElementById("forms").innerHTML  = FORMS.map(formCard).join("");
+document.getElementById("sheets").innerHTML = SHEETS.map(sheetCard).join("");
+tick(); setInterval(tick, 1000*30);
+</script>
+</body>
+</html>
