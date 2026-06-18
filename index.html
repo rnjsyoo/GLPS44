@@ -5,46 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GLPS 44 HQ · 어시 보드</title>
 <style>
-  :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff}
+  :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff;
+    --green:#3b6d11;--greenbg:#eef6e3;--amber:#854F0B;--amberbg:#fbf0d8;--red:#a32d2d;--redbg:#fcecec}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.5}
-  .wrap{max-width:960px;margin:0 auto;padding:0 16px 56px}
-  header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
-    padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:20px}
-  header h1{margin:0;font-size:18px;font-weight:700}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px 56px}
+  header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:13px 18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  .logo{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:19px}
+  header h1{margin:0;font-size:17px;font-weight:700}
   header .sub{font-size:12px;opacity:.82;margin-top:2px}
-  .meta{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .chip{font-size:12.5px;background:rgba(255,255,255,.16);padding:6px 11px;border-radius:9px;white-space:nowrap}
+  .meta{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .chip{font-size:12px;background:rgba(255,255,255,.16);padding:5px 10px;border-radius:9px;white-space:nowrap}
   .chip b{font-weight:700}
-  h2.sec{font-size:15px;color:var(--navy);font-weight:700;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  h2.sec{font-size:15px;color:var(--navy);font-weight:700;margin:24px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h2.sec .mini{font-size:12px;font-weight:400;color:var(--muted)}
+  h2.sec button,.linkbtn{margin-left:auto;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;color:var(--blue);text-decoration:none}
+  h2.sec button:hover{background:#f3f7fc}
+  /* board */
   .board{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .bcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:300px}
-  .bcard .bh{padding:11px 14px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
-  .bcard .bh .i{font-size:18px}
-  .bcard.green .bh{color:#27500A;background:#eef6e3} .bcard.amber .bh{color:#854F0B;background:#fbf0d8}
-  .bcard iframe{border:0;width:100%;flex:1;min-height:260px}
-  .ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:13px;text-align:center;padding:20px}
-  .ph .k{font-size:12px;background:#f0d4d4;color:#9c3030;padding:3px 9px;border-radius:7px;font-family:monospace}
+  .bcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:260px}
+  .bcard .bh{padding:10px 13px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line)}
+  .bcard iframe{border:0;width:100%;flex:1;min-height:220px}
+  .ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:12px;text-align:center;padding:16px}
+  .ph .k{font-family:monospace;font-size:11px;background:var(--redbg);color:var(--red);padding:2px 7px;border-radius:7px}
+  /* metrics */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .metric{border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
+  .metric .l{font-size:12px;font-weight:700}
+  .metric .n{font-size:26px;font-weight:700;margin-top:2px}
+  .metric.r{background:var(--greenbg);border-color:#d3e7b8} .metric.r .l,.metric.r .n{color:var(--green)}
+  .metric.w{background:var(--amberbg);border-color:#f0dca5} .metric.w .l,.metric.w .n{color:var(--amber)}
+  .metric.p{background:var(--redbg);border-color:#f3cccc} .metric.p .l,.metric.p .n{color:var(--red)}
+  /* search */
+  .searchbox{margin:14px 0}
+  .searchbox input{width:100%;font-size:15px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;outline:none}
+  .searchbox input:focus{border-color:var(--blue)}
+  #searchResult{margin-top:10px}
+  .sr{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:8px}
+  .sr .nm{font-size:16px;font-weight:700}
+  .sr .pi{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .sr .cnts{display:flex;gap:8px;margin:9px 0}
+  .pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px}
+  .pill.r{background:var(--greenbg);color:var(--green)} .pill.w{background:var(--amberbg);color:var(--amber)} .pill.p{background:var(--redbg);color:var(--red)}
+  .sr .hist{font-size:12.5px;color:#444;border-top:1px solid var(--line);padding-top:7px;margin-top:4px}
+  .sr .hi{display:flex;gap:8px;padding:3px 0}
+  .sr .hi .d{color:var(--muted);min-width:42px}
+  /* card sections */
+  .cardsecs{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:6px}
+  .csec{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;display:flex;flex-direction:column}
+  .csec .ch{padding:10px 13px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+  .csec.r .ch{background:var(--greenbg);color:var(--green)} .csec.w .ch{background:var(--amberbg);color:var(--amber)} .csec.p .ch{background:var(--redbg);color:var(--red)}
+  .csec .ch .c{font-size:12px;background:#fff;border-radius:20px;padding:1px 9px}
+  .clist{padding:6px;max-height:360px;overflow-y:auto}
+  .ci{padding:8px 9px;border-radius:9px;font-size:13px}
+  .ci:nth-child(odd){background:#fafbfd}
+  .ci .top{display:flex;gap:7px;align-items:baseline}
+  .ci .d{color:var(--muted);font-size:11.5px;min-width:40px}
+  .ci .nm{font-weight:700}
+  .ci .cl{font-size:11.5px;color:var(--muted)}
+  .ci .rs{display:block;color:#444;margin-top:2px;font-size:12.5px}
+  .ci .by{color:var(--muted);font-size:11px}
+  .empty{color:var(--muted);font-size:12.5px;text-align:center;padding:18px}
+  .err{background:#fff7e6;border:1px solid #f3dca5;color:#8a6411;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.7}
+  .err code{font-family:monospace;background:#fff;padding:1px 6px;border-radius:5px}
+  .note{font-size:12px;color:var(--muted);margin:8px 2px 0}
+  /* form/sheet grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 6px 4px}
-  details{border-radius:10px}
-  summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:500}
-  summary::-webkit-details-marker{display:none}
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:4px}
+  details summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:500}
+  details summary::-webkit-details-marker{display:none}
   summary:hover{background:#f7f9fc}
   summary .i{font-size:18px;width:20px;text-align:center}
   summary .lbl{flex:1}
   summary .tag{font-size:11px;color:var(--muted);background:#eef1f6;padding:2px 9px;border-radius:7px}
-  summary .chev{color:var(--muted);font-size:13px}
   .body{padding:4px 8px 10px}
   .body iframe{border:1px solid var(--line);border-radius:8px;width:100%;height:520px}
-  .body .open{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--blue);text-decoration:none;margin:2px 0 8px}
+  .body .open{display:inline-flex;gap:6px;font-size:13px;color:var(--blue);text-decoration:none;margin:2px 0 8px}
   .pii summary .tag{background:#fdeccb;color:#8a6411}
   .miss{padding:14px;color:var(--muted);font-size:13px;text-align:center}
-  .miss .k{font-family:monospace;background:#f0d4d4;color:#9c3030;padding:2px 7px;border-radius:6px}
-  .note{font-size:12px;color:var(--muted);margin:8px 2px 0}
+  .miss .k{font-family:monospace;background:var(--redbg);color:var(--red);padding:2px 7px;border-radius:6px}
   footer{margin-top:30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
-  @media(max-width:680px){.board{grid-template-columns:1fr}}
+  @media(max-width:720px){.board,.metrics,.cardsecs{grid-template-columns:1fr}.clist{max-height:300px}}
 </style>
 </head>
 <body>
@@ -65,149 +106,238 @@
 
   <h2 class="sec">📌 오늘의 보드</h2>
   <div class="board">
-    <div class="bcard green">
-      <div class="bh"><span class="i">🌅</span> 오늘 루틴 업무</div>
+    <div class="bcard">
+      <div class="bh" style="background:var(--greenbg);color:var(--green)">🌅 오늘 루틴 업무</div>
       <div id="board_routine"></div>
     </div>
-    <div class="bcard amber">
-      <div class="bh"><span class="i">🚪</span> 현재 외부 학생 (외출·외박)</div>
+    <div class="bcard">
+      <div class="bh" style="background:var(--amberbg);color:var(--amber)">🚪 현재 외부 학생 (외출·외박)</div>
       <div id="board_outside"></div>
     </div>
   </div>
-  <p class="note">※ 두 칸은 시트의 ‘오늘 자동필터’ 탭을 임베드합니다. 시트가 어시에게만 공유돼 있으면 로그인한 어시만 내용을 볼 수 있어요.</p>
 
   <h2 class="sec">📝 입력 (구글폼)</h2>
   <div class="grid" id="forms"></div>
 
   <h2 class="sec">📊 조회 · 시트</h2>
+  <div class="gcard pii" style="margin-bottom:13px">
+    <details id="studentDetails">
+      <summary><span class="i">🛏️</span><span class="lbl">학생 반·호실·개인정보</span><span class="tag" style="background:#fdeccb;color:#8a6411">🔒 개인정보 ▾</span></summary>
+      <div class="body" id="studentBody"></div>
+    </details>
+  </div>
+  <div class="gcard" style="margin-bottom:13px">
+    <details id="cardDetails">
+      <summary><span class="i">🏷️</span><span class="lbl">카드 현황 (Reward·Warning·Penalty)</span><span class="tag" id="cardMeta">열기 ▾</span></summary>
+      <div class="body">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button id="reload" class="linkbtn">↻ 새로고침</button></div>
+        <div class="metrics" id="cardSummary">
+          <div class="metric r"><div class="l">Reward</div><div class="n" id="mReward">–</div></div>
+          <div class="metric w"><div class="l">Warning</div><div class="n" id="mWarning">–</div></div>
+          <div class="metric p"><div class="l">Penalty</div><div class="n" id="mPenalty">–</div></div>
+        </div>
+        <div class="searchbox">
+          <input id="q" placeholder="🔎 학생 이름 검색 — 카드 개수 · 반/호실/개인정보 확인">
+          <div id="searchResult"></div>
+        </div>
+        <div class="cardsecs">
+          <div class="csec r"><div class="ch">Reward <span class="c" id="cReward">0</span></div><div class="clist" id="listReward"></div></div>
+          <div class="csec w"><div class="ch">Warning <span class="c" id="cWarning">0</span></div><div class="clist" id="listWarning"></div></div>
+          <div class="csec p"><div class="ch">Penalty <span class="c" id="cPenalty">0</span></div><div class="clist" id="listPenalty"></div></div>
+        </div>
+        <div class="err" id="cardError" style="display:none"></div>
+        <p class="note" id="cardNote"></p>
+      </div>
+    </details>
+  </div>
   <div class="grid" id="sheets"></div>
 
-  <footer>
-    학생 개인정보는 구글 시트 공유 권한(어시 한정)으로 보호됩니다.<br>
-    GLPS 44 HQ
-  </footer>
+  <footer>학생 개인정보는 구글 시트 공유 권한으로 관리됩니다. · GLPS 44 HQ</footer>
 </div>
 
 <script>
 /* ====================================================================
-   설정 — 여기 links 의 "" 안에 구글폼/시트 주소를 붙여넣으세요.
-   · 폼: 폼 열어서 주소창 URL (…/viewform) 그대로
-   · 시트: 보여줄 탭을 연 상태의 URL (…/edit#gid=숫자) — gid 포함되게
+   설정 — "" 안에 구글폼/시트 주소를 붙여넣으세요.
    ==================================================================== */
 const CONFIG = {
-  camp:  { name:"GLPS 2026 Summer (GLPS 44)", start:"2026-07-18", end:"2026-08-08" },
-  /* 2단계(시간표): 교시별 시간. 비우면 '시간표 준비중'. 예: {no:1,start:"09:00",end:"09:45"} */
+  camp: { name:"GLPS 2026 Summer (GLPS 44)", start:"2026-07-18", end:"2026-08-08" },
   periods: [],
+  /* 카드 데이터: 응답 시트를 "링크 보기 허용" 또는 "웹에 게시(CSV)" 후 주소.
+     기본은 gviz CSV (시트가 '링크가 있는 모든 사용자=뷰어'면 동작). 안 되면 게시 CSV 주소로 교체. */
+  cardDataCsv: "https://docs.google.com/spreadsheets/d/1AfTq4PyY1kZEUwSgR-tOoyeQuHRQWFqN6nB-gpsfSWk/gviz/tq?tqx=out:csv",
+  cardSheetUrl: "https://docs.google.com/spreadsheets/d/1AfTq4PyY1kZEUwSgR-tOoyeQuHRQWFqN6nB-gpsfSWk/edit",
+  /* 학생 DB(반·호실·개인정보) CSV — 채우면 검색에 반/호실/연락처가 함께 표시됨 */
+  studentDbCsv: "",
   links: {
-    board_routine: "",   // 오늘 루틴 (스마트 탭)
-    board_outside: "",   // 현재 외부 학생 (스마트 탭)
-    form_card:     "",   // 카드 발급 폼
-    form_outing:   "",   // 외출외박 신청 폼
-    form_eop_catch:"",   // (선택) EOP 적발 폼
-    form_eop_pass: "",   // (선택) EOP 통과 폼
-    sheet_card:    "",   // 학생별 카드 누계 조회
-    sheet_outing:  "",   // 외출외박 처리 현황
-    sheet_routine: "",   // 루틴·등대지기
-    sheet_weekend: "",   // 주말 업무 배정
-    sheet_fire:    "",   // 화재대피 구역
-    sheet_students:""    // 학생 반·호실·개인정보 (PII)
+    board_routine:"", board_outside:"",
+    form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
+    form_outing:"",
+    sheet_outing:"", sheet_routine:"", sheet_weekend:"", sheet_fire:"", sheet_students:""
   }
 };
-
 const FORMS = [
-  { key:"form_card",      icon:"🪪", title:"카드 발급 (Reward·Warning·Penalty)" },
-  { key:"form_outing",    icon:"📝", title:"외출외박 신청" },
-  { key:"form_eop_catch", icon:"⚠️", title:"EOP 적발", optional:true },
-  { key:"form_eop_pass",  icon:"✅", title:"EOP 통과", optional:true },
+  { key:"form_card",   icon:"🏷️", title:"카드 발급 (Reward·Warning·Penalty)" },
+  { key:"form_outing", icon:"📝", title:"외출외박 신청" },
 ];
 const SHEETS = [
-  { key:"sheet_card",     icon:"🔎", title:"학생별 카드 누계 조회" },
   { key:"sheet_outing",   icon:"📋", title:"외출외박 처리 현황" },
   { key:"sheet_routine",  icon:"🌅", title:"루틴 · 등대지기" },
-  { key:"sheet_weekend",  icon:"🎉", title:"주말 업무 배정" },
+  { key:"sheet_weekend",  icon:"🎲", title:"주말 업무 배정" },
   { key:"sheet_fire",     icon:"🧯", title:"화재대피 구역" },
-  { key:"sheet_students", icon:"🛏️", title:"학생 반·호실·개인정보", pii:true },
 ];
 
-/* ---------- URL 변환 ---------- */
-function formEmbed(u){
-  if(!u) return "";
-  u = u.split("#")[0];
-  if(u.indexOf("/viewform")<0) u = u.replace(/\/edit.*$/,"") + "/viewform";
-  return u + (u.indexOf("?")<0 ? "?" : "&") + "embedded=true";
-}
-function parseSheet(u){
-  const id=(u.match(/\/d\/([a-zA-Z0-9-_]+)/)||[])[1]||"";
-  const gid=(u.match(/[#?&]gid=([0-9]+)/)||[])[1]||"";
-  return {id,gid};
-}
+/* ---------- 공통 ---------- */
+function isSet(v){ return v && v.trim() && !v.startsWith("PASTE"); }
+function formEmbed(u){ if(!u) return ""; if(u.indexOf("forms.gle")>=0) return u; u=u.split("#")[0]; if(u.indexOf("/viewform")<0) u=u.replace(/\/edit.*$/,"")+"/viewform"; return u+(u.indexOf("?")<0?"?":"&")+"embedded=true"; }
+function parseSheet(u){ const id=(u.match(/\/d\/([a-zA-Z0-9-_]+)/)||[])[1]||""; const gid=(u.match(/[#?&]gid=([0-9]+)/)||[])[1]||""; return {id,gid}; }
 function sheetEmbed(u){ const{id,gid}=parseSheet(u); if(!id)return""; return `https://docs.google.com/spreadsheets/d/${id}/preview`+(gid?`?gid=${gid}`:""); }
 function sheetOpen(u){ const{id,gid}=parseSheet(u); if(!id)return"#"; return `https://docs.google.com/spreadsheets/d/${id}/edit`+(gid?`?gid=${gid}`:""); }
-function isSet(v){ return v && v.trim() && !v.startsWith("PASTE"); }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-/* ---------- 보드 임베드 ---------- */
-function boardSlot(id, key){
-  const u = CONFIG.links[key];
-  const el = document.getElementById(id);
-  if(isSet(u)) el.innerHTML = `<iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`;
-  else el.innerHTML = `<div class="ph"><span>링크 미설정</span><span class="k">links.${key}</span><span>설정에 시트 주소를 넣으면 표시됩니다</span></div>`;
+/* ---------- CSV 파서 ---------- */
+function parseCSV(text){
+  const rows=[]; let row=[], val="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){val+='"';i++;} else q=false; }
+      else val+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===','){ row.push(val); val=""; }
+      else if(c==='\n'){ row.push(val); rows.push(row); row=[]; val=""; }
+      else if(c==='\r'){}
+      else val+=c;
+    }
+  }
+  if(val!==""||row.length){ row.push(val); rows.push(row); }
+  return rows;
+}
+function toObjects(rows){
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(x=>x&&x.trim())).map(r=>{
+    const o={}; head.forEach((h,i)=>o[h]=(r[i]||"").trim()); return o;
+  });
+}
+
+/* ---------- 카드 정규화 ---------- */
+function typeKey(rec){ const t=(rec["Card Type"]||"").toLowerCase(); if(t.indexOf("reward")>=0)return"Reward"; if(t.indexOf("warning")>=0)return"Warning"; if(t.indexOf("penalty")>=0)return"Penalty"; return""; }
+function reasonOf(rec,k){
+  if(k==="Reward") return rec["WHY - Reward Card"]||"";
+  if(k==="Warning") return [rec["WHY - Warning Card"],rec["Additional Notes (if needed) - Warning Card"]].filter(Boolean).join(" / ");
+  if(k==="Penalty") return [rec["WHY - Penalty Card"],rec["Additional Notes (if needed) - Penalty Card"]].filter(Boolean).join(" / ");
+  return "";
+}
+function parseKDate(s){ const m=(s||"").match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/); return m?new Date(+m[1],+m[2]-1,+m[3]):null; }
+function shortDate(d){ return d?`${d.getMonth()+1}/${d.getDate()}`:""; }
+
+let CARDS=[], STUDENTDB={};
+
+function normalize(objs){
+  return objs.map(r=>{
+    const k=typeKey(r);
+    const d=parseKDate(r["Date of Issue"])||parseKDate(r["타임스탬프"]||r["Timestamp"]);
+    return { type:k, name:(r["Student NAME"]||"").trim(), cls:(r["Student CLASS"]||"").trim(),
+             by:(r["PA/TA/LA/Faculty NAME"]||"").trim(), where:(r["WHERE"]||"").trim(),
+             reason:reasonOf(r,k), date:d };
+  }).filter(c=>c.type&&c.name);
+}
+
+/* ---------- 렌더 ---------- */
+function renderSections(){
+  const byType={Reward:[],Warning:[],Penalty:[]};
+  CARDS.forEach(c=>{ if(byType[c.type]) byType[c.type].push(c); });
+  for(const k of ["Reward","Warning","Penalty"]){
+    const arr=byType[k].slice().sort((a,b)=>(b.date?+b.date:0)-(a.date?+a.date:0));
+    document.getElementById("c"+k).textContent=arr.length;
+    document.getElementById("m"+k).textContent=arr.length;
+    const el=document.getElementById("list"+k);
+    el.innerHTML = arr.length? arr.map(c=>`<div class="ci"><div class="top"><span class="d">${shortDate(c.date)}</span><span class="nm">${esc(c.name)}</span><span class="cl">${c.cls?esc(c.cls)+"반":""}</span></div>${c.reason?`<span class="rs">${esc(c.reason)}</span>`:""}<span class="by">${c.by?"발급: "+esc(c.by):""}</span></div>`).join("")
+      : `<div class="empty">아직 없음</div>`;
+  }
+}
+function studentInfo(name){
+  const k=Object.keys(STUDENTDB).find(n=>n===name)||Object.keys(STUDENTDB).find(n=>n.indexOf(name)>=0);
+  return k?STUDENTDB[k]:null;
+}
+function search(qv){
+  const box=document.getElementById("searchResult");
+  const q=(qv||"").trim();
+  if(!q){ box.innerHTML=""; return; }
+  const names=[...new Set(CARDS.filter(c=>c.name.indexOf(q)>=0).map(c=>c.name))];
+  if(!names.length){ box.innerHTML=`<div class="sr"><div class="pi">‘${esc(q)}’ 카드 기록 없음</div></div>`; return; }
+  box.innerHTML=names.slice(0,8).map(nm=>{
+    const cs=CARDS.filter(c=>c.name===nm);
+    const cnt=t=>cs.filter(c=>c.type===t).length;
+    const info=studentInfo(nm);
+    const pi=info?`반 ${esc(info.cls||"-")} · 호실 ${esc(info.room||"-")}${info.phone?" · "+esc(info.phone):""}`:`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 호실/개인정보는 학생 DB 연결 시 표시</span>`;
+    const hist=cs.slice().sort((a,b)=>(b.date?+b.date:0)-(a.date?+a.date:0)).map(c=>`<div class="hi"><span class="d">${shortDate(c.date)}</span><span class="pill ${c.type[0].toLowerCase()}">${c.type}</span><span>${esc(c.reason||"")}</span></div>`).join("");
+    return `<div class="sr"><div class="nm">${esc(nm)}</div><div class="pi">${pi}</div>
+      <div class="cnts"><span class="pill r">Reward ${cnt("Reward")}</span><span class="pill w">Warning ${cnt("Warning")}</span><span class="pill p">Penalty ${cnt("Penalty")}</span></div>
+      <div class="hist">${hist}</div></div>`;
+  }).join("");
+}
+
+/* ---------- 데이터 로드 ---------- */
+async function fetchCsv(url){ const res=await fetch(url); if(!res.ok) throw new Error("HTTP "+res.status); return await res.text(); }
+async function loadCards(){
+  const err=document.getElementById("cardError"); err.style.display="none";
+  document.getElementById("cardMeta").textContent="불러오는 중…";
+  try{
+    const txt=await fetchCsv(CONFIG.cardDataCsv);
+    CARDS=normalize(toObjects(parseCSV(txt)));
+    if(isSet(CONFIG.studentDbCsv)){
+      try{ const o=toObjects(parseCSV(await fetchCsv(CONFIG.studentDbCsv)));
+        STUDENTDB={}; o.forEach(r=>{ const nm=(r["한글명"]||r["이름"]||r["Student NAME"]||"").trim(); if(nm) STUDENTDB[nm]={cls:r["반"]||r["Student CLASS"]||"",room:r["배정호실"]||r["호실"]||"",phone:r["휴대전화1"]||r["보호자 연락처"]||""}; }); }catch(e){}
+    }
+    renderSections();
+    document.getElementById("cardMeta").textContent=`총 ${CARDS.length}건 · ${new Date().toTimeString().slice(0,5)} 갱신`;
+    document.getElementById("cardNote").textContent="";
+  }catch(e){
+    document.getElementById("cardMeta").textContent="";
+    err.style.display="block";
+    err.innerHTML=`카드 데이터를 불러오지 못했어요 (${esc(e.message)}).<br>
+      ① 응답 시트 <b>공유 → ‘링크가 있는 모든 사용자: 뷰어’</b>로 설정하거나,<br>
+      ② <b>파일 → 공유 → 웹에 게시 → CSV</b> 주소를 복사해 <code>CONFIG.cardDataCsv</code>에 붙여넣으세요.`;
+  }
 }
 
 /* ---------- 폼/시트 카드 ---------- */
-function formCard(item){
-  const u = CONFIG.links[item.key], on=isSet(u);
-  const tag = item.optional ? "선택·폼" : "폼";
-  const inner = on
-    ? `<div class="body"><a class="open" href="${formEmbed(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${formEmbed(u)}" loading="lazy"></iframe></div>`
-    : `<div class="miss">링크 미설정 — <span class="k">links.${item.key}</span></div>`;
-  return `<div class="card"><details><summary><span class="i">${item.icon}</span><span class="lbl">${item.title}</span><span class="tag">${tag}</span><span class="chev">▾</span></summary>${inner}</details></div>`;
-}
-function sheetCard(item){
-  const u = CONFIG.links[item.key], on=isSet(u);
-  const cls = item.pii ? "card pii" : "card";
-  const tag = item.pii ? "🔒 개인정보·시트" : "시트";
-  const inner = on
-    ? `<div class="body"><a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe></div>`
-    : `<div class="miss">링크 미설정 — <span class="k">links.${item.key}</span></div>`;
-  return `<div class="${cls}"><details><summary><span class="i">${item.icon}</span><span class="lbl">${item.title}</span><span class="tag">${tag}</span><span class="chev">▾</span></summary>${inner}</details></div>`;
-}
+function boardSlot(id,key){ const u=CONFIG.links[key],el=document.getElementById(id);
+  el.innerHTML=isSet(u)?`<iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="ph"><span>시트 연결 시 표시</span><span class="k">links.${key}</span></div>`; }
+function formCard(it){ const u=CONFIG.links[it.key],on=isSet(u);
+  const inner=on?`<div class="body"><a class="open" href="${formEmbed(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${formEmbed(u)}" loading="lazy"></iframe></div>`:`<div class="miss">링크 미설정 — <span class="k">links.${it.key}</span></div>`;
+  return `<div class="gcard"><details><summary><span class="i">${it.icon}</span><span class="lbl">${it.title}</span><span class="tag">폼</span></summary>${inner}</details></div>`; }
+function sheetCard(it){ const u=CONFIG.links[it.key],on=isSet(u),cls=it.pii?"gcard pii":"gcard",tag=it.pii?"🔒 개인정보":"시트";
+  const inner=on?`<div class="body"><a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe></div>`:`<div class="miss">링크 미설정 — <span class="k">links.${it.key}</span></div>`;
+  return `<div class="${cls}"><details><summary><span class="i">${it.icon}</span><span class="lbl">${it.title}</span><span class="tag">${tag}</span></summary>${inner}</details></div>`; }
 
-/* ---------- 날짜 · 주차 · 교시 ---------- */
+/* ---------- 날짜·주차·교시 ---------- */
 const DOW=["일","월","화","수","목","금","토"];
 function fmt(d){ return `${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`; }
-function weekInfo(now){
-  const s=new Date(CONFIG.camp.start+"T00:00:00"), e=new Date(CONFIG.camp.end+"T23:59:59");
-  const day=Math.floor((now - s)/86400000);
-  if(now<s) return "캠프 시작 전";
-  if(now>e) return "캠프 종료";
-  if(day<=1) return "입소 주말";
-  const wk=Math.floor((day-2)/7)+1;
-  return (wk>=1&&wk<=3)? wk+"주차" : "캠프 기간";
-}
-function periodInfo(now){
-  if(!CONFIG.periods.length) return "시간표 준비중";
-  const hm=now.getHours()*60+now.getMinutes();
-  for(const p of CONFIG.periods){
-    const [sh,sm]=p.start.split(":").map(Number), [eh,em]=p.end.split(":").map(Number);
-    if(hm>=sh*60+sm && hm<=eh*60+em) return p.no+"교시";
-  }
-  return "수업 외 시간";
-}
-function tick(){
-  const now=new Date();
-  document.getElementById("campsub").textContent=CONFIG.camp.name;
+function weekInfo(now){ const s=new Date(CONFIG.camp.start+"T00:00:00"),e=new Date(CONFIG.camp.end+"T23:59:59"); const day=Math.floor((now-s)/86400000);
+  if(now<s)return"캠프 시작 전"; if(now>e)return"캠프 종료"; if(day<=1)return"입소 주말"; const wk=Math.floor((day-2)/7)+1; return(wk>=1&&wk<=3)?wk+"주차":"캠프 기간"; }
+function periodInfo(now){ if(!CONFIG.periods.length)return"시간표 준비중"; const hm=now.getHours()*60+now.getMinutes();
+  for(const p of CONFIG.periods){ const[a,b]=p.start.split(":").map(Number),[c,d]=p.end.split(":").map(Number); if(hm>=a*60+b&&hm<=c*60+d)return p.no+"교시"; } return"수업 외 시간"; }
+function tick(){ const now=new Date(); document.getElementById("campsub").textContent=CONFIG.camp.name;
   document.getElementById("chipDate").innerHTML="📅 <b>"+fmt(now)+"</b>";
   document.getElementById("chipWeek").innerHTML="🗓 <b>"+weekInfo(now)+"</b>";
   document.getElementById("chipPeriod").innerHTML="⏰ <b>"+periodInfo(now)+"</b>";
-  document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5);
-}
+  document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5); }
 
 /* ---------- init ---------- */
-boardSlot("board_routine","board_routine");
-boardSlot("board_outside","board_outside");
-document.getElementById("forms").innerHTML  = FORMS.map(formCard).join("");
-document.getElementById("sheets").innerHTML = SHEETS.map(sheetCard).join("");
-tick(); setInterval(tick, 1000*30);
+boardSlot("board_routine","board_routine"); boardSlot("board_outside","board_outside");
+(function(){ const u=CONFIG.links.sheet_students, el=document.getElementById("studentBody");
+  el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.sheet_students</span></div>`; })();
+document.getElementById("forms").innerHTML=FORMS.map(formCard).join("");
+document.getElementById("sheets").innerHTML=SHEETS.map(sheetCard).join("");
+document.getElementById("q").addEventListener("input",e=>search(e.target.value));
+document.getElementById("reload").addEventListener("click",loadCards);
+let cardsLoaded=false;
+const _cd=document.getElementById("cardDetails");
+_cd.addEventListener("toggle",()=>{ if(_cd.open && !cardsLoaded){ cardsLoaded=true; loadCards(); }});
+tick(); setInterval(tick,30000);
 </script>
 </body>
 </html>
