@@ -23,6 +23,8 @@
   h2.sec button:hover{background:#f3f7fc}
   /* board */
   .board{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .bcard.full{min-height:360px;margin-bottom:14px}
+  .bcard.full iframe{min-height:320px}
   .bcard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:260px}
   .bcard .bh{padding:10px 13px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line)}
   .bcard iframe{border:0;width:100%;flex:1;min-height:220px}
@@ -105,14 +107,18 @@
   </header>
 
   <h2 class="sec">📌 오늘의 보드</h2>
+  <div class="bcard full">
+    <div class="bh" style="background:var(--greenbg);color:var(--green)">🌅 루틴 업무</div>
+    <div id="board_routine"></div>
+  </div>
   <div class="board">
-    <div class="bcard">
-      <div class="bh" style="background:var(--greenbg);color:var(--green)">🌅 오늘 루틴 업무</div>
-      <div id="board_routine"></div>
-    </div>
     <div class="bcard">
       <div class="bh" style="background:var(--amberbg);color:var(--amber)">🚪 현재 외부 학생 (외출·외박)</div>
       <div id="board_outside"></div>
+    </div>
+    <div class="bcard">
+      <div class="bh" style="background:#e9eefc;color:var(--navy)">🎂 오늘의 생일자</div>
+      <div id="board_birthday"></div>
     </div>
   </div>
 
@@ -150,6 +156,12 @@
       </div>
     </details>
   </div>
+  <div class="gcard" style="margin-bottom:13px">
+    <details id="routineDetails">
+      <summary><span class="i">🌅</span><span class="lbl">루틴 · 등대지기</span><span class="tag">시트 ▾</span></summary>
+      <div class="body" id="routineBody"></div>
+    </details>
+  </div>
   <div class="grid" id="sheets"></div>
 
   <footer>학생 개인정보는 구글 시트 공유 권한으로 관리됩니다. · GLPS 44 HQ</footer>
@@ -169,10 +181,10 @@ const CONFIG = {
   /* 학생 DB(반·호실·개인정보) CSV — 채우면 검색에 반/호실/연락처가 함께 표시됨 */
   studentDbCsv: "",
   links: {
-    board_routine:"", board_outside:"",
+    board_routine:"", board_outside:"", board_birthday:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"",
-    sheet_outing:"", sheet_routine:"", sheet_weekend:"", sheet_fire:"", sheet_students:""
+    sheet_outing:"", sheet_routine:"", sheet_weekend:"", sheet_students:""
   }
 };
 const FORMS = [
@@ -181,9 +193,7 @@ const FORMS = [
 ];
 const SHEETS = [
   { key:"sheet_outing",   icon:"📋", title:"외출외박 처리 현황" },
-  { key:"sheet_routine",  icon:"🌅", title:"루틴 · 등대지기" },
   { key:"sheet_weekend",  icon:"🎲", title:"주말 업무 배정" },
-  { key:"sheet_fire",     icon:"🧯", title:"화재대피 구역" },
 ];
 
 /* ---------- 공통 ---------- */
@@ -327,9 +337,10 @@ function tick(){ const now=new Date(); document.getElementById("campsub").textCo
   document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5); }
 
 /* ---------- init ---------- */
-boardSlot("board_routine","board_routine"); boardSlot("board_outside","board_outside");
-(function(){ const u=CONFIG.links.sheet_students, el=document.getElementById("studentBody");
-  el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.sheet_students</span></div>`; })();
+boardSlot("board_routine","board_routine"); boardSlot("board_outside","board_outside"); boardSlot("board_birthday","board_birthday");
+function fullSheet(bodyId,key){ const u=CONFIG.links[key], el=document.getElementById(bodyId);
+  el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.${key}</span></div>`; }
+fullSheet("studentBody","sheet_students"); fullSheet("routineBody","sheet_routine");
 document.getElementById("forms").innerHTML=FORMS.map(formCard).join("");
 document.getElementById("sheets").innerHTML=SHEETS.map(sheetCard).join("");
 document.getElementById("q").addEventListener("input",e=>search(e.target.value));
