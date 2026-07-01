@@ -133,6 +133,12 @@
     </details>
   </div>
   <div class="gcard" style="margin-bottom:13px">
+    <details id="assistantDetails">
+      <summary><span class="i">📇</span><span class="lbl">어시스턴트 정보</span><span class="tag">시트 ▾</span></summary>
+      <div class="body" id="assistantBody"></div>
+    </details>
+  </div>
+  <div class="gcard" style="margin-bottom:13px">
     <details id="cardDetails">
       <summary><span class="i">🏷️</span><span class="lbl">카드 현황 (Reward·Warning·Penalty)</span><span class="tag" id="cardMeta">열기 ▾</span></summary>
       <div class="body">
@@ -153,6 +159,33 @@
         </div>
         <div class="err" id="cardError" style="display:none"></div>
         <p class="note" id="cardNote"></p>
+      </div>
+    </details>
+  </div>
+  <div class="gcard" style="margin-bottom:13px">
+    <details id="outingDetails" open>
+      <summary><span class="i">📋</span><span class="lbl">외출외박 처리 현황 (승인·대기·반려)</span><span class="tag" id="outingMeta">열기 ▾</span></summary>
+      <div class="body">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+          <a class="open" id="outingOpen" href="#" target="_blank" rel="noopener" style="margin:0">📄 원본 시트 새 탭에서 열기 ↗</a>
+          <button id="reloadOuting" class="linkbtn">↻ 새로고침</button>
+        </div>
+        <div class="metrics" id="outingSummary">
+          <div class="metric r"><div class="l">승인</div><div class="n" id="mApprove">–</div></div>
+          <div class="metric w"><div class="l">대기</div><div class="n" id="mPending">–</div></div>
+          <div class="metric p"><div class="l">반려</div><div class="n" id="mReject">–</div></div>
+        </div>
+        <div class="searchbox">
+          <input id="qOut" placeholder="🔎 학생 이름 검색 — 외출외박 신청·승인 내역">
+          <div id="searchResultOut"></div>
+        </div>
+        <div class="cardsecs">
+          <div class="csec r"><div class="ch">승인 <span class="c" id="cApprove">0</span></div><div class="clist" id="listApprove"></div></div>
+          <div class="csec w"><div class="ch">대기 <span class="c" id="cPending">0</span></div><div class="clist" id="listPending"></div></div>
+          <div class="csec p"><div class="ch">반려 <span class="c" id="cReject">0</span></div><div class="clist" id="listReject"></div></div>
+        </div>
+        <div class="err" id="outingError" style="display:none"></div>
+        <p class="note" id="outingNote">‘승인 여부’ 열이 <b>yes</b>=승인, 빈칸=대기, <b>no</b>=반려로 자동 분류됩니다.</p>
       </div>
     </details>
   </div>
@@ -188,7 +221,7 @@ const CONFIG = {
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
     sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
-    sheet_routine:"", sheet_weekend:"", sheet_students:""
+    sheet_routine:"", sheet_weekend:"", sheet_students:"", sheet_assistant:""
   }
 };
 const FORMS = [
@@ -196,7 +229,6 @@ const FORMS = [
   { key:"form_outing", icon:"📝", title:"외출외박 신청" },
 ];
 const SHEETS = [
-  { key:"sheet_outing",   icon:"📋", title:"외출외박 처리 현황" },
   { key:"sheet_weekend",  icon:"🎲", title:"주말 업무 배정" },
 ];
 
@@ -248,14 +280,19 @@ function shortDate(d){ return d?`${d.getMonth()+1}/${d.getDate()}`:""; }
 
 let CARDS=[], STUDENTDB={};
 
+function splitNames(s){ return (s||"").split(/[,，、\/;；·・‧\n\r]+/).map(x=>x.trim()).filter(Boolean); }
 function normalize(objs){
-  return objs.map(r=>{
+  const out=[];
+  objs.forEach(r=>{
     const k=typeKey(r);
     const d=parseKDate(r["Date of Issue"])||parseKDate(r["타임스탬프"]||r["Timestamp"]);
-    return { type:k, name:(r["Student NAME"]||"").trim(), cls:(r["Student CLASS"]||"").trim(),
+    const base={ type:k, cls:(r["Student CLASS"]||"").trim(),
              by:(r["PA/TA/LA/Faculty NAME"]||"").trim(), where:(r["WHERE"]||"").trim(),
              reason:reasonOf(r,k), date:d };
-  }).filter(c=>c.type&&c.name);
+    const names=splitNames(r["Student NAME"]);
+    (names.length?names:[""]).forEach(nm=>out.push(Object.assign({},base,{name:nm})));
+  });
+  return out.filter(c=>c.type&&c.name);
 }
 
 /* ---------- 렌더 ---------- */
@@ -333,7 +370,7 @@ function normalizeOuting(objs){
     depDate:parseDMY(getf(r,"나가는날짜")), retDate:parseDMY(getf(r,"들어오는날짜")),
     depTime:(getf(r,"나가는시간")||"").trim(), retTime:(getf(r,"들어오는시간")||"").trim(),
     reason:(getf(r,"사유")||"").trim(), assistant:(getf(r,"어시스턴트")||"").trim(),
-    approved:isApproved(getf(r,"승인"))
+    approved:isApproved(getf(r,"승인")), cat:approvalCat(getf(r,"승인"))
   })).filter(o=>o.name);
 }
 function outStatus(o,today){ if(!o.approved||!o.depDate||!o.retDate) return null;
@@ -354,13 +391,60 @@ function renderOutside(){
     return `<div class="ci"><div class="top"><span class="nm">${esc(o.name)}</span>${o.cls?`<span class="cl">${esc(o.cls)}반</span>`:""}<span class="pill" style="${col}">${kind}</span></div><span class="rs">${span}${o.reason?" · "+esc(o.reason):""}</span>${o.assistant?`<span class="by">담당 어시: ${esc(o.assistant)}</span>`:""}</div>`;
   }).join("")+`</div>`;
 }
+function approvalCat(v){ const t=(v||"").trim();
+  if(isApproved(t)) return "Approve";
+  if(/^\s*(no|n|반려|불가|거절|deny|denied|reject|rejected|x|false|0)\s*$/i.test(t)) return "Reject";
+  return "Pending"; }
+function outItem(o){
+  const overnight=o.depDate&&o.retDate&&o.depDate.getTime()!==o.retDate.getTime(), kind=overnight?"외박":"외출";
+  const period=`${shortDate(o.depDate)}${o.depTime?" "+esc(o.depTime):""} → ${shortDate(o.retDate)}${o.retTime?" "+esc(o.retTime):""}`;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const st=o.approved?outStatus(o,today):null;
+  const stTxt=st==="외부"?" · 🟢 현재 외부":st==="예정"?" · 🕒 예정":st==="종료"?" · ✔ 종료":"";
+  return `<div class="ci"><div class="top"><span class="d">${shortDate(o.depDate)}</span><span class="nm">${esc(o.name)}</span><span class="cl">${o.cls?esc(o.cls)+"반 · ":""}${kind}</span></div><span class="rs">${period}${o.reason?" · "+esc(o.reason):""}</span><span class="by">${o.assistant?"담당: "+esc(o.assistant):""}${stTxt}</span></div>`;
+}
+function renderOutingStatus(){
+  if(!document.getElementById("listApprove")) return;
+  const meta=document.getElementById("outingMeta"), err=document.getElementById("outingError");
+  if(OUTING_ERR){ if(meta)meta.textContent="";
+    if(err){ err.style.display="block"; err.innerHTML=`외출외박 시트를 불러오지 못했어요 (${esc(OUTING_ERR)}).<br>시트 <b>공유 → ‘링크가 있는 모든 사용자: 뷰어’</b>로 설정하세요.`; }
+    ["Approve","Pending","Reject"].forEach(k=>{ document.getElementById("m"+k).textContent="–"; document.getElementById("c"+k).textContent="0"; document.getElementById("list"+k).innerHTML=`<div class="empty">—</div>`; });
+    return; }
+  if(err) err.style.display="none";
+  const buckets={Approve:[],Pending:[],Reject:[]};
+  OUTINGS.forEach(o=>{ if(buckets[o.cat]) buckets[o.cat].push(o); });
+  for(const key of ["Approve","Pending","Reject"]){
+    const arr=buckets[key].slice().sort((a,b)=>(b.depDate?+b.depDate:0)-(a.depDate?+a.depDate:0));
+    document.getElementById("c"+key).textContent=arr.length;
+    document.getElementById("m"+key).textContent=arr.length;
+    document.getElementById("list"+key).innerHTML= arr.length? arr.map(outItem).join("") : `<div class="empty">아직 없음</div>`;
+  }
+  if(meta) meta.textContent=`총 ${OUTINGS.length}건 · ${new Date().toTimeString().slice(0,5)} 갱신`;
+}
+function searchOut(qv){
+  const box=document.getElementById("searchResultOut"), q=(qv||"").trim();
+  if(!q){ box.innerHTML=""; return; }
+  const names=[...new Set(OUTINGS.filter(o=>o.name.indexOf(q)>=0).map(o=>o.name))];
+  if(!names.length){ box.innerHTML=`<div class="sr"><div class="pi">‘${esc(q)}’ 외출외박 기록 없음</div></div>`; return; }
+  box.innerHTML=names.slice(0,8).map(nm=>{
+    const os=OUTINGS.filter(o=>o.name===nm).sort((a,b)=>(b.depDate?+b.depDate:0)-(a.depDate?+a.depDate:0));
+    const cnt=c=>os.filter(o=>o.cat===c).length;
+    const info=studentInfo(nm);
+    const pi=info?`반 ${esc(info.cls||"-")} · 호실 ${esc(info.room||"-")}`:`반 ${esc(os[0].cls||"-")}`;
+    const hist=os.map(o=>{ const kind=(o.depDate&&o.retDate&&o.depDate.getTime()!==o.retDate.getTime())?"외박":"외출";
+      const pill=o.cat==="Approve"?'<span class="pill r">승인</span>':o.cat==="Reject"?'<span class="pill p">반려</span>':'<span class="pill w">대기</span>';
+      return `<div class="hi"><span class="d">${shortDate(o.depDate)}</span>${pill}<span>${kind} ${shortDate(o.depDate)}→${shortDate(o.retDate)}${o.reason?" · "+esc(o.reason):""}</span></div>`; }).join("");
+    return `<div class="sr"><div class="nm">${esc(nm)}</div><div class="pi">${pi}</div><div class="cnts"><span class="pill r">승인 ${cnt("Approve")}</span><span class="pill w">대기 ${cnt("Pending")}</span><span class="pill p">반려 ${cnt("Reject")}</span></div><div class="hist">${hist}</div></div>`;
+  }).join("");
+}
 async function loadOutings(){
-  const el=document.getElementById("board_outside");
+  const el=document.getElementById("board_outside"), meta=document.getElementById("outingMeta");
+  if(meta) meta.textContent="불러오는 중…";
   if(!isSet(CONFIG.outingDataCsv)){ el.innerHTML=`<div class="ph"><span>외출외박 시트 연결 시 표시</span><span class="k">outingDataCsv</span></div>`; return; }
   if(!OUTINGS.length && !OUTING_ERR) el.innerHTML=`<div class="empty" style="padding:26px">불러오는 중…</div>`;
   try{ const txt=await fetchCsv(CONFIG.outingDataCsv); OUTINGS=normalizeOuting(toObjects(parseCSV(txt))); OUTING_ERR=null; }
   catch(e){ OUTING_ERR=e.message; OUTINGS=[]; }
-  renderOutside();
+  renderOutside(); renderOutingStatus();
 }
 
 /* ---------- 폼/시트 카드 ---------- */
@@ -391,11 +475,14 @@ boardSlot("board_routine","board_routine"); boardSlot("board_birthday","board_bi
 loadOutings();
 function fullSheet(bodyId,key){ const u=CONFIG.links[key], el=document.getElementById(bodyId);
   el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.${key}</span></div>`; }
-fullSheet("studentBody","sheet_students"); fullSheet("routineBody","sheet_routine");
+fullSheet("studentBody","sheet_students"); fullSheet("routineBody","sheet_routine"); fullSheet("assistantBody","sheet_assistant");
 document.getElementById("forms").innerHTML=FORMS.map(formCard).join("");
 document.getElementById("sheets").innerHTML=SHEETS.map(sheetCard).join("");
 document.getElementById("q").addEventListener("input",e=>search(e.target.value));
+document.getElementById("qOut").addEventListener("input",e=>searchOut(e.target.value));
 document.getElementById("reload").addEventListener("click",()=>{loadCards();loadOutings();});
+document.getElementById("reloadOuting").addEventListener("click",loadOutings);
+{ const _oo=document.getElementById("outingOpen"); if(_oo && isSet(CONFIG.links.sheet_outing)) _oo.href=sheetOpen(CONFIG.links.sheet_outing); }
 let cardsLoaded=false;
 const _cd=document.getElementById("cardDetails");
 _cd.addEventListener("toggle",()=>{ if(_cd.open && !cardsLoaded){ cardsLoaded=true; loadCards(); }});
