@@ -268,11 +268,11 @@ function toObjects(rows){
 }
 
 /* ---------- 카드 정규화 ---------- */
-function typeKey(rec){ const t=(rec["Card Type"]||"").toLowerCase(); if(t.indexOf("reward")>=0)return"Reward"; if(t.indexOf("warning")>=0)return"Warning"; if(t.indexOf("penalty")>=0)return"Penalty"; return""; }
+function typeKey(rec){ const t=(getf(rec,"Card Type")||"").toLowerCase(); if(t.indexOf("reward")>=0)return"Reward"; if(t.indexOf("warning")>=0)return"Warning"; if(t.indexOf("penalty")>=0)return"Penalty"; return""; }
 function reasonOf(rec,k){
-  if(k==="Reward") return rec["WHY - Reward Card"]||"";
-  if(k==="Warning") return [rec["WHY - Warning Card"],rec["Additional Notes (if needed) - Warning Card"]].filter(Boolean).join(" / ");
-  if(k==="Penalty") return [rec["WHY - Penalty Card"],rec["Additional Notes (if needed) - Penalty Card"]].filter(Boolean).join(" / ");
+  if(k==="Reward") return getf(rec,"WHY","Reward")||"";
+  if(k==="Warning") return [getf(rec,"WHY","Warning"),getf(rec,"Additional","Warning")].filter(Boolean).join(" / ");
+  if(k==="Penalty") return [getf(rec,"WHY","Penalty"),getf(rec,"Additional","Penalty")].filter(Boolean).join(" / ");
   return "";
 }
 function parseKDate(s){ const m=(s||"").match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/); return m?new Date(+m[1],+m[2]-1,+m[3]):null; }
@@ -280,16 +280,16 @@ function shortDate(d){ return d?`${d.getMonth()+1}/${d.getDate()}`:""; }
 
 let CARDS=[], STUDENTDB={};
 
-function splitNames(s){ return (s||"").split(/[,，、\/;；·・‧\n\r]+/).map(x=>x.trim()).filter(Boolean); }
+function splitNames(s){ return (s||"").split(/[,，、.．\/;；·・‧\n\r]+/).map(x=>x.trim()).filter(Boolean); }
 function normalize(objs){
   const out=[];
   objs.forEach(r=>{
     const k=typeKey(r);
-    const d=parseKDate(r["Date of Issue"])||parseKDate(r["타임스탬프"]||r["Timestamp"]);
-    const base={ type:k, cls:(r["Student CLASS"]||"").trim(),
-             by:(r["PA/TA/LA/Faculty NAME"]||"").trim(), where:(r["WHERE"]||"").trim(),
+    const d=parseKDate(getf(r,"Date of Issue"))||parseKDate(getf(r,"타임스탬프")||getf(r,"Timestamp"));
+    const base={ type:k, cls:(getf(r,"Student CLASS")||"").trim(),
+             by:(getf(r,"Faculty")||"").trim(), where:(getf(r,"WHERE")||"").trim(),
              reason:reasonOf(r,k), date:d };
-    const names=splitNames(r["Student NAME"]);
+    const names=splitNames(getf(r,"Student NAME"));
     (names.length?names:[""]).forEach(nm=>out.push(Object.assign({},base,{name:nm})));
   });
   return out.filter(c=>c.type&&c.name);
