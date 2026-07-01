@@ -113,7 +113,7 @@
   </div>
   <div class="board">
     <div class="bcard">
-      <div class="bh" style="background:var(--amberbg);color:var(--amber)">🚪 현재 외부 학생 (외출·외박)</div>
+      <div class="bh" style="background:var(--amberbg);color:var(--amber)">🚪 현재 외부 학생 (외출·외박)<span id="outsideCount" style="margin-left:auto;font-weight:400;font-size:12px;opacity:.85"></span></div>
       <div id="board_outside"></div>
     </div>
     <div class="bcard">
@@ -180,11 +180,15 @@ const CONFIG = {
   cardSheetUrl: "https://docs.google.com/spreadsheets/d/1AfTq4PyY1kZEUwSgR-tOoyeQuHRQWFqN6nB-gpsfSWk/edit",
   /* 학생 DB(반·호실·개인정보) CSV — 채우면 검색에 반/호실/연락처가 함께 표시됨 */
   studentDbCsv: "",
+  /* 외출외박 응답 시트 CSV — '현재 외부 학생' 보드가 승인 여부·날짜로 자동 계산됨.
+     시트 공유가 '링크가 있는 모든 사용자: 뷰어'여야 동작. 안 되면 웹에 게시 CSV 주소로 교체. */
+  outingDataCsv: "https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/gviz/tq?tqx=out:csv",
   links: {
     board_routine:"", board_outside:"", board_birthday:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
-    form_outing:"",
-    sheet_outing:"", sheet_routine:"", sheet_weekend:"", sheet_students:""
+    form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
+    sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
+    sheet_routine:"", sheet_weekend:"", sheet_students:""
   }
 };
 const FORMS = [
@@ -313,6 +317,52 @@ async function loadCards(){
   }
 }
 
+/* ---------- 외출외박: 현재 외부 학생 (승인 여부 + 날짜 자동 계산) ---------- */
+let OUTINGS=[], OUTING_ERR=null;
+function pickKey(rec,...subs){ return Object.keys(rec).find(k=>{ const kk=k.replace(/\s/g,""); return subs.every(x=>kk.indexOf(x.replace(/\s/g,""))>=0); }); }
+function getf(rec,...subs){ const k=pickKey(rec,...subs); return k?rec[k]:""; }
+function parseDMY(str){ const m=(str||"").trim().match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/); if(!m) return null;
+  let a=+m[1],b=+m[2],y=+m[3]; if(y<100) y+=2000; let day,mon;
+  if(a>12){day=a;mon=b;} else if(b>12){day=b;mon=a;} else {day=a;mon=b;} /* 이 폼 응답은 DD/MM/YYYY */
+  const d=new Date(y,mon-1,day); return isNaN(d.getTime())?null:d; }
+function isApproved(v){ return /^\s*(yes|y|승인|approved|o|ok|true|1|가능)\s*$/i.test((v||"").trim()); }
+function normalizeOuting(objs){
+  return objs.map(r=>({
+    name:(getf(r,"학생이름")||"").trim(),
+    cls:(getf(r,"반Class")||"").trim(),
+    depDate:parseDMY(getf(r,"나가는날짜")), retDate:parseDMY(getf(r,"들어오는날짜")),
+    depTime:(getf(r,"나가는시간")||"").trim(), retTime:(getf(r,"들어오는시간")||"").trim(),
+    reason:(getf(r,"사유")||"").trim(), assistant:(getf(r,"어시스턴트")||"").trim(),
+    approved:isApproved(getf(r,"승인"))
+  })).filter(o=>o.name);
+}
+function outStatus(o,today){ if(!o.approved||!o.depDate||!o.retDate) return null;
+  const t=today.getTime(),d=o.depDate.getTime(),r=o.retDate.getTime();
+  if(t<d) return "예정"; if(t>r) return "종료"; return "외부"; }
+function renderOutside(){
+  const el=document.getElementById("board_outside"), cnt=document.getElementById("outsideCount");
+  if(OUTING_ERR){ if(cnt)cnt.textContent="";
+    el.innerHTML=`<div class="ph"><span>시트를 불러오지 못했어요</span><span class="k">${esc(OUTING_ERR)}</span><span style="font-size:11px;color:var(--muted)">시트 공유를 ‘링크가 있는 모든 사용자: 뷰어’로 설정하세요</span></div>`; return; }
+  const today=new Date(); today.setHours(0,0,0,0);
+  const cur=OUTINGS.filter(o=>outStatus(o,today)==="외부").sort((a,b)=>(a.retDate?+a.retDate:0)-(b.retDate?+b.retDate:0));
+  if(cnt) cnt.textContent = cur.length? `${cur.length}명 외부` : "전원 재실";
+  if(!cur.length){ el.innerHTML=`<div class="empty" style="padding:26px">현재 외부 학생 없음 · 전원 재실</div>`; return; }
+  el.innerHTML=`<div class="clist" style="max-height:none">`+cur.map(o=>{
+    const overnight=o.depDate.getTime()!==o.retDate.getTime(), kind=overnight?"외박":"외출";
+    const col=overnight?"background:var(--amberbg);color:var(--amber)":"background:#e9eefc;color:var(--navy)";
+    const span=`${shortDate(o.depDate)}${o.depTime?" "+esc(o.depTime):""} → ${shortDate(o.retDate)}${o.retTime?" "+esc(o.retTime):""}`;
+    return `<div class="ci"><div class="top"><span class="nm">${esc(o.name)}</span>${o.cls?`<span class="cl">${esc(o.cls)}반</span>`:""}<span class="pill" style="${col}">${kind}</span></div><span class="rs">${span}${o.reason?" · "+esc(o.reason):""}</span>${o.assistant?`<span class="by">담당 어시: ${esc(o.assistant)}</span>`:""}</div>`;
+  }).join("")+`</div>`;
+}
+async function loadOutings(){
+  const el=document.getElementById("board_outside");
+  if(!isSet(CONFIG.outingDataCsv)){ el.innerHTML=`<div class="ph"><span>외출외박 시트 연결 시 표시</span><span class="k">outingDataCsv</span></div>`; return; }
+  if(!OUTINGS.length && !OUTING_ERR) el.innerHTML=`<div class="empty" style="padding:26px">불러오는 중…</div>`;
+  try{ const txt=await fetchCsv(CONFIG.outingDataCsv); OUTINGS=normalizeOuting(toObjects(parseCSV(txt))); OUTING_ERR=null; }
+  catch(e){ OUTING_ERR=e.message; OUTINGS=[]; }
+  renderOutside();
+}
+
 /* ---------- 폼/시트 카드 ---------- */
 function boardSlot(id,key){ const u=CONFIG.links[key],el=document.getElementById(id);
   el.innerHTML=isSet(u)?`<iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="ph"><span>시트 연결 시 표시</span><span class="k">links.${key}</span></div>`; }
@@ -337,18 +387,19 @@ function tick(){ const now=new Date(); document.getElementById("campsub").textCo
   document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5); }
 
 /* ---------- init ---------- */
-boardSlot("board_routine","board_routine"); boardSlot("board_outside","board_outside"); boardSlot("board_birthday","board_birthday");
+boardSlot("board_routine","board_routine"); boardSlot("board_birthday","board_birthday");
+loadOutings();
 function fullSheet(bodyId,key){ const u=CONFIG.links[key], el=document.getElementById(bodyId);
   el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.${key}</span></div>`; }
 fullSheet("studentBody","sheet_students"); fullSheet("routineBody","sheet_routine");
 document.getElementById("forms").innerHTML=FORMS.map(formCard).join("");
 document.getElementById("sheets").innerHTML=SHEETS.map(sheetCard).join("");
 document.getElementById("q").addEventListener("input",e=>search(e.target.value));
-document.getElementById("reload").addEventListener("click",loadCards);
+document.getElementById("reload").addEventListener("click",()=>{loadCards();loadOutings();});
 let cardsLoaded=false;
 const _cd=document.getElementById("cardDetails");
 _cd.addEventListener("toggle",()=>{ if(_cd.open && !cardsLoaded){ cardsLoaded=true; loadCards(); }});
-tick(); setInterval(tick,30000);
+tick(); setInterval(tick,30000); setInterval(loadOutings,300000);
 </script>
 </body>
 </html>
