@@ -113,6 +113,8 @@
   .note{font-size:12px;color:var(--muted);margin:8px 2px 0}
   /* form/sheet grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px}
+  #forms{grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media(max-width:720px){#forms{grid-template-columns:1fr}}
   .gcard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:4px}
   details summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:500}
   details summary::-webkit-details-marker{display:none}
@@ -316,7 +318,7 @@ const CONFIG = {
   /* 학생 DB — 'DB 관리보드 GLPS 44'를 구글시트로 변환(파일>Google Sheets로 저장)하고
      '링크가 있는 모든 사용자: 뷰어'로 공유한 뒤 그 주소를 붙여넣기.
      DB · 이름_반_방 · 클래스PA·층LA · 동명이인·형제자매 탭을 읽습니다. */
-  studentDbSheet: "",
+  studentDbSheet: "https://docs.google.com/spreadsheets/d/1Pra5dOBvFfN5p-No7W5_h8ZxYuUR3McB/edit",
   studentDbCsv: "",
   /* 보건실 재실 — 구글폼 '응답 시트' 주소 (링크 뷰어 공유). 폼 링크는 links.form_health */
   healthSheet: "",
@@ -644,6 +646,11 @@ function stCsvUrl(name){ const{id}=parseSheet(CONFIG.studentDbSheet); return "ht
 function stHeaderRow(rows,anchor){ for(let i=0;i<Math.min(rows.length,8);i++){ if((rows[i]||[]).some(c=>String(c==null?"":c).indexOf(anchor)>=0)) return i; } return 0; }
 function stObjects(rows,anchor){ const h=stHeaderRow(rows,anchor); const head=(rows[h]||[]).map(x=>String(x==null?"":x).trim());
   return rows.slice(h+1).filter(r=>r.some(x=>x&&String(x).trim())).map(r=>{ const o={}; head.forEach((k,i)=>{ if(k) o[k]=String(r[i]==null?"":r[i]).trim(); }); return o; }); }
+function stPairs(rows,keyAnchor,valAnchor){ const h=stHeaderRow(rows,valAnchor); const head=(rows[h]||[]).map(x=>String(x==null?"":x));
+  const ki=head.findIndex(x=>x.indexOf(keyAnchor)>=0), vi=head.findIndex(x=>x.indexOf(valAnchor)>=0);
+  const m={}; if(ki<0||vi<0) return m;
+  rows.slice(h+1).forEach(r=>{ const k=String(r[ki]==null?"":r[ki]).trim(), v=String(r[vi]==null?"":r[vi]).trim();
+    if(k&&v) m[k.replace(/[^0-9]/g,"")||k]=v; }); return m; }
 function floorOf(room){ const dg=String(room==null?"":room).replace(/[^0-9]/g,""); if(!dg) return ""; const n=+dg; return n>=100?String(Math.floor(n/100)):""; }
 async function loadStudents(force){
   const el=document.getElementById("studentBody"); if(!el) return;
@@ -651,36 +658,26 @@ async function loadStudents(force){
   if(ST_LOADING) return; if(STUDENTS&&!force){ renderStudents(); return; }
   ST_LOADING=true; el.innerHTML='<div class="empty">학생 DB 불러오는 중…</div>';
   try{
-    const[dbR,rrR,plR,sbR]=await Promise.all([
+    const[dbR,rrR,paR,laR]=await Promise.all([
       fetchCsv(stCsvUrl("DB")),
       fetchCsv(stCsvUrl("이름_반_방")).catch(()=>""),
-      fetchCsv(stCsvUrl("클래스PA·층LA")).catch(()=>""),
-      fetchCsv(stCsvUrl("동명이인·형제자매")).catch(()=>"")
+      fetchCsv(stCsvUrl("클래스PA")).catch(()=>""),
+      fetchCsv(stCsvUrl("층LA")).catch(()=>"")
     ]);
     const db=stObjects(parseCSV(dbR),"한글명");
     const rr=rrR?stObjects(parseCSV(rrR),"한글명"):[];
-    const plRows=plR?parseCSV(plR):[];
-    const sb=sbR?stObjects(parseCSV(sbR),"이름1"):[];
-    const roomBy={},clsBy={};
-    rr.forEach(r=>{ const nm=stf(r,"한글명")||stf(r,"이름"); if(!nm||nm.indexOf("※")>=0) return;
-      const c=stf(r,"반"); if(c) clsBy[nm]=c; const rm=stf(r,"호실")||stf(r,"방"); if(rm) roomBy[nm]=rm; });
-    ST_PA={}; ST_LA={};
-    (function(){ const h=stHeaderRow(plRows,"담당"); const head=plRows[h]||[];
-      const ci=s=>head.findIndex(x=>String(x==null?"":x).indexOf(s)>=0);
-      const cB=ci("반"),cP=ci("PA"),cF=ci("층"),cL=ci("LA");
-      plRows.slice(h+1).forEach(r=>{
-        if(cB>=0&&cP>=0){ const b=String(r[cB]==null?"":r[cB]).trim(),p=String(r[cP]==null?"":r[cP]).trim(); if(b&&p) ST_PA[b.replace(/[^0-9]/g,"")||b]=p; }
-        if(cF>=0&&cL>=0){ const f=String(r[cF]==null?"":r[cF]).trim(),l=String(r[cL]==null?"":r[cL]).trim(); if(f&&l) ST_LA[f.replace(/[^0-9]/g,"")||f]=l; } });
-    })();
+    ST_PA=paR?stPairs(parseCSV(paR),"반","PA 이름"):{};
+    ST_LA=laR?stPairs(parseCSV(laR),"층","LA 이름"):{};
     if(!Object.keys(ST_LA).length){ ASSISTANTS.forEach(a=>{ const m=(a.role||"").match(/\((\d+)층\)/); if(m) ST_LA[m[1]]=a.kr; }); }
-    const sibBy={};
-    sb.forEach(r=>{ const a=stf(r,"이름1"),b=stf(r,"이름2"); if(a&&b){ (sibBy[a]=sibBy[a]||[]).push(b); (sibBy[b]=sibBy[b]||[]).push(a); } });
+    const roomBy={},clsBy={};
+    rr.forEach(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return;
+      const c=stf(r,"반"); if(c) clsBy[nm]=c; const rm=stf(r,"배정호실")||stf(r,"호실"); if(rm) roomBy[nm]=rm; });
     STUDENTS=db.map(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return null;
-      const room=roomBy[nm]||stf(r,"배정호실")||stf(r,"호실")||"", cls=clsBy[nm]||stf(r,"반")||"";
+      const room=roomBy[nm]||stf(r,"배정호실")||"", cls=clsBy[nm]||stf(r,"반")||"";
       const algY=stf(r,"알레르기"), algD=stf(r,"알레르기 내용");
       return { nm, en:stf(r,"영문명"), cls, room, fl:floorOf(room), school:stf(r,"학교명"), grade:stf(r,"학년"),
         g1:stf(r,"보호자1"), rel1:stf(r,"관계1"), ph1:stf(r,"휴대전화1"),
-        alg: algD || (/유|있|y|o/i.test(algY)?algY:""), sib:(sibBy[nm]||[]).join(" · ") };
+        alg: algD || (/유|있/.test(algY)||/^[oy]/i.test(algY)?algY:""), sib:stf(r,"자매이름") };
     }).filter(Boolean);
     STUDENTDB={}; STUDENTS.forEach(s=>{ STUDENTDB[s.nm]={cls:s.cls,room:s.room,phone:s.ph1}; });
     renderHealth();
