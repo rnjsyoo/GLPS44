@@ -284,7 +284,7 @@
           <div class="metric p"><div class="l">Penalty</div><div class="n" id="mPenalty">–</div></div>
         </div>
         <div class="searchbox">
-          <input id="q" placeholder="🔎 학생 이름 검색 — 카드 개수 · 반/호실/개인정보 확인">
+          <input id="q" placeholder="🔎 학생 이름 검색 — 카드 개수 · 반·호실(DB 자동) 확인">
           <div id="searchResult"></div>
         </div>
         <div class="cardsecs">
@@ -451,10 +451,14 @@ function renderSections(){
       : `<div class="empty">아직 없음</div>`;
   }
 }
-function studentInfo(name){
-  const k=Object.keys(STUDENTDB).find(n=>n===name)||Object.keys(STUDENTDB).find(n=>n.indexOf(name)>=0);
-  return k?STUDENTDB[k]:null;
+function studentMatches(name){
+  const keys=Object.keys(STUDENTDB); if(!keys.length) return [];
+  const exact=keys.filter(n=>n===name); if(exact.length) return exact;
+  return keys.filter(n=>n===name||n.indexOf(name+"-")===0||n.indexOf(name)>=0);
 }
+function studentInfo(name){ const m=studentMatches(name); return m.length===1?STUDENTDB[m[0]]:null; }
+function ensureStudentDB(){ if(isSet(CONFIG.studentDbSheet)&&typeof loadStudents==="function"&&STUDENTS===null&&!ST_LOADING) loadStudents(); }
+function refreshCardSearch(){ const el=document.getElementById("q"); if(el&&el.value.trim()) search(el.value); }
 function search(qv){
   const box=document.getElementById("searchResult");
   const q=(qv||"").trim();
@@ -464,8 +468,13 @@ function search(qv){
   box.innerHTML=names.slice(0,8).map(nm=>{
     const cs=CARDS.filter(c=>c.name===nm);
     const cnt=t=>cs.filter(c=>c.type===t).length;
-    const info=studentInfo(nm);
-    const pi=info?`반 ${esc(info.cls||"-")} · 호실 ${esc(info.room||"-")}${info.phone?" · "+esc(info.phone):""}`:`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 호실/개인정보는 학생 DB 연결 시 표시</span>`;
+    const ms=studentMatches(nm), info=ms.length===1?STUDENTDB[ms[0]]:null;
+    let pi;
+    if(info){ const clsTxt=info.cls?esc(info.cls)+"반":"반 미정"; const roomTxt=info.room?esc(info.room):"호실 미정";
+      pi=`🛏 ${clsTxt} · ${roomTxt}${info.phone?" · "+esc(info.phone):""}`; }
+    else if(ms.length>1){ pi=`동명이인 ${ms.length}명 — ‘학생 반·호실·개인정보’에서 학교로 구분해 확인`; }
+    else if(isSet(CONFIG.studentDbSheet)&&STUDENTS===null){ pi=`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 학생 DB 불러오는 중…</span>`; }
+    else { pi=`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 호실은 학생 DB에서 이름이 일치할 때 표시</span>`; }
     const hist=cs.slice().sort((a,b)=>(b.date?+b.date:0)-(a.date?+a.date:0)).map(c=>`<div class="hi"><span class="d">${shortDate(c.date)}</span><span class="pill ${c.type[0].toLowerCase()}">${c.type}</span><span>${esc(c.reason||"")}</span></div>`).join("");
     return `<div class="sr"><div class="nm">${esc(nm)}</div><div class="pi">${pi}</div>
       <div class="cnts"><span class="pill r">Reward ${cnt("Reward")}</span><span class="pill w">Warning ${cnt("Warning")}</span><span class="pill p">Penalty ${cnt("Penalty")}</span></div>
@@ -481,10 +490,7 @@ async function loadCards(){
   try{
     const txt=await fetchCsv(CONFIG.cardDataCsv);
     CARDS=normalize(toObjects(parseCSV(txt)));
-    if(isSet(CONFIG.studentDbCsv)){
-      try{ const o=toObjects(parseCSV(await fetchCsv(CONFIG.studentDbCsv)));
-        STUDENTDB={}; o.forEach(r=>{ const nm=(r["한글명"]||r["이름"]||r["Student NAME"]||"").trim(); if(nm) STUDENTDB[nm]={cls:r["반"]||r["Student CLASS"]||"",room:r["배정호실"]||r["호실"]||"",phone:r["휴대전화1"]||r["보호자 연락처"]||""}; }); }catch(e){}
-    }
+    ensureStudentDB();
     renderSections();
     document.getElementById("cardMeta").textContent=`총 ${CARDS.length}건 · ${new Date().toTimeString().slice(0,5)} 갱신`;
     document.getElementById("cardNote").textContent="";
@@ -715,6 +721,7 @@ async function loadStudents(force){
         alg: algD || (/유|있/.test(algY)||/^[oy]/i.test(algY)?algY:""), sib:stf(r,"자매이름") };
     }).filter(Boolean);
     STUDENTDB={}; STUDENTS.forEach(s=>{ STUDENTDB[s.nm]={cls:s.cls,room:s.room,phone:s.ph1}; });
+    refreshCardSearch();
     renderHealth();
     renderStudents();
   }catch(e){ el.innerHTML='<div class="err">학생 DB 로드 실패: '+esc(e.message)+' — 시트 공유(링크 뷰어)와 주소를 확인하세요.</div>'; }
