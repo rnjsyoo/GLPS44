@@ -8,7 +8,7 @@
   :root{--navy:#1F3864;--blue:#2E75B6;--ink:#1f2733;--muted:#6b7480;--line:#e3e7ee;--bg:#f4f6fa;--card:#fff;
     --green:#3b6d11;--greenbg:#eef6e3;--amber:#854F0B;--amberbg:#fbf0d8;--red:#a32d2d;--redbg:#fcecec}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.5}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',-apple-system,'Segoe UI',sans-serif;line-height:1.5;word-break:keep-all}
   .wrap{max-width:980px;margin:0 auto;padding:0 16px 56px}
   header{position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:13px 18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
   .logo{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:19px}
@@ -35,7 +35,9 @@
   .rtdate{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
   .rtdate b{color:var(--ink);font-size:13.5px}
   .rtnext{margin-left:auto;font-size:11px;background:#eff5fc;color:var(--blue);border-radius:7px;padding:2px 8px}
-  .rtgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:9px;align-items:start}
+  .rtgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
+  .rtgrid.one{grid-template-columns:1fr}
+  .rtcol{display:flex;flex-direction:column;gap:9px;min-width:0}
   .rtsec{border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .rtsec .rh{padding:6px 10px;font-size:12px;font-weight:700}
   .rtrow{display:flex;gap:7px;padding:5px 10px;font-size:12.5px;border-top:1px solid var(--line);align-items:baseline}
@@ -65,6 +67,13 @@
   .schip.dim{background:#f1f2f5;color:#9aa1ab}
   .st-alg{color:var(--red);font-weight:600}
   /* 보건실 보드 */
+  .hltbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  .hltbl th,.hltbl td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:center;white-space:nowrap}
+  .hltbl thead th{background:#f6f8fb;color:var(--navy);font-weight:700;position:sticky;top:0}
+  .hltbl td.hld{font-size:11.5px;color:var(--muted)}
+  .hltbl td.hlp{font-size:11.5px;color:var(--blue);font-weight:600}
+  .hltbl tr.hltoday td{background:#fdf7f7}
+  .hltbl tr.hltoday td.hld{color:var(--red);font-weight:700}
   .hlwrap{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
   .hlgrp{border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .hlh{background:var(--redbg);color:var(--red);font-size:12px;font-weight:700;padding:5px 10px}
@@ -130,6 +139,28 @@
   .miss .k{font-family:monospace;background:var(--redbg);color:var(--red);padding:2px 7px;border-radius:6px}
   footer{margin-top:30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
   @media(max-width:720px){.board,.metrics,.cardsecs{grid-template-columns:1fr}.clist{max-height:300px}}
+  /* 모바일 최적화 */
+  .rtscroll{-webkit-overflow-scrolling:touch}
+  @media(max-width:720px){
+    .wrap{padding:0 10px 44px}
+    header{padding:10px 12px;gap:9px}
+    header h1{font-size:15px}
+    .logo{width:34px;height:34px;font-size:16px}
+    .chip{font-size:11px;padding:4px 8px}
+    .bcard,.bcard.full{min-height:0}
+    .bcard.full iframe{min-height:240px}
+    .rtgrid{grid-template-columns:1fr}
+    .rtcol{gap:8px}
+    .rtnext{margin-left:0}
+    .rtdate{font-size:12px}
+    .rtrow{font-size:13px;padding:6px 10px}
+    .rtrow .tm{font-size:10px}
+    .rttbl{font-size:11.5px;min-width:700px}
+    .hltbl th,.hltbl td{padding:5px 6px;font-size:11.5px}
+    .srow{font-size:13px}
+    .arow{font-size:13px}
+    h2.sec{margin:18px 0 10px}
+  }
   /* ---------- 어시스턴트 명단 (내장 디렉터리) ---------- */
   .adir{display:flex;flex-direction:column;gap:12px}
   .agrp{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -321,7 +352,7 @@ const CONFIG = {
   studentDbSheet: "https://docs.google.com/spreadsheets/d/1Pra5dOBvFfN5p-No7W5_h8ZxYuUR3McB/edit",
   studentDbCsv: "",
   /* 보건실 재실 — 구글폼 '응답 시트' 주소 (링크 뷰어 공유). 폼 링크는 links.form_health */
-  healthSheet: "",
+  healthSheet: "https://docs.google.com/spreadsheets/d/1JoQZ5BFev-kC2Ko-nLeeHmYkxG1Q99d_FQpwqECWXmM/edit",
   /* 외출외박 응답 시트 CSV — '현재 외부 학생' 보드가 승인 여부·날짜로 자동 계산됨.
      시트 공유가 '링크가 있는 모든 사용자: 뷰어'여야 동작. 안 되면 웹에 게시 CSV 주소로 교체. */
   outingDataCsv: "https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/gviz/tq?tqx=out:csv",
@@ -329,7 +360,7 @@ const CONFIG = {
     board_routine:"", board_outside:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
-    form_counsel:"", form_health:"",
+    form_counsel:"", form_health:"https://forms.gle/tutRBoPtygM6GcjNA",
     sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
     sheet_routine:"", sheet_weekend:"", sheet_students:"", sheet_assistant:""
   }
@@ -585,17 +616,19 @@ function tick(){ const now=new Date(); document.getElementById("campsub").textCo
 /* RT-BEGIN 오늘의 루틴 (자동배분_명단 내장) */
 const ROUTINE_SWITCH="22:30"; /* 이 시각부터 다음날 루틴 표시 */
 const ROUTINE_TASKS=[["아침","식당","손소독제","07:00~07:30"],["아침","식당","질서유지","07:00~07:30"],["아침","식당","잔반지도","07:30~08:00"],["아침","등대지기","2층 등대지기","07:15~07:45"],["아침","등대지기","3층 등대지기","07:15~07:45"],["아침","등대지기","4층 등대지기","07:15~07:45"],["아침","등대지기","5층 등대지기","07:15~07:45"],["아침","등대지기","6층 등대지기","07:15~07:45"],["아침","등대지기","7층 등대지기","07:15~07:45"],["아침","등대지기","8층 등대지기","07:15~07:45"],["아침","등대지기","9층 등대지기","07:15~07:45"],["아침","등대지기","10층 등대지기","07:15~07:45"],["아침","창의관","빨래통 상하역","07:00~07:30"],["아침","창의관","빨래통 상하역","07:00~07:30"],["점심","홀베","엘리베이터 질서유지","12:55~13:25"],["점심","짝베","엘리베이터 질서유지","12:55~13:25"],["점심","식당","손소독제","12:55~13:25"],["점심","식당","질서유지","12:55~13:25"],["점심","식당","잔반지도","13:20~13:50"],["점심","식당","잔반지도","13:20~13:50"],["저녁","홀베","엘리베이터 질서유지","17:40~18:10"],["저녁","짝베","엘리베이터 질서유지","17:40~18:10"],["저녁","식당","손소독제","17:40~18:10"],["저녁","식당","질서유지","17:40~18:10"],["저녁","식당","잔반지도","18:05~18:35"],["저녁","식당","잔반지도","18:05~18:35"],["혼정","식당","혼정빵","21:30~22:30"],["혼정","식당","혼정빵","21:30~22:30"],["혼정","식당","분리수거","21:30~22:30"]];
-const ROUTINE_DATES={"2026-07-20":["김예원","이현구","양예원","김민용","신이현","오유진","류지안","지민욱","서전형","정윤홍","권휘우","신지원","유세진","최정웅","장지민","정유진","서연우","임세영","김병찬","권예원","남형규","조민지","최유현","김민우","유서진","한준희","김나영","임유진","이예준"],"2026-07-21":["이다솔","조성원","노유빈","정유찬A","정유진","김민기","류지수","이재우","박강빈","박도은","유준희","손서인","","","이소명","최보겸","이세윤","나진영","이상민","황찬우A","이찬신","권기수","유상현","최선우","김민규","은다현","김준태","김이재","강서현"],"2026-07-22":["남형규","최유현","임유진","이소명","유상현","김이재","김민우","김민규","황찬우A","임세영","김병찬","은다현","유세진","최정웅","김준태","이찬신","류지안","한준희","지민욱","강서현","양예원","김예원","김가영","박진이","류지수","박소운","조민지","예지우","최서현"],"2026-07-23":["권기수","서연우","장지민","이세윤","나진영","이상민","유서진","이예준","예지우","유준희","김민기","강서현","","","김민용","신이현","박도은","최선우","신지원","박소운","김나영","최보겸","정윤홍","서전형","권예원","권휘우","이현구","박강빈","이재우"],"2026-07-24":["김나영","최보겸","조민지","이찬신","최선우","권예원","한준희","박강빈","이상민","지민욱","임세영","박소운","유세진","최정웅","조성원","이현구","박진이","김가영","유서진","김민우","노유빈","정유찬A","최서현","류지안","김병찬","신지원","이다솔","손서인","오유진"],"2026-07-25":["김준태","서연우","양예원","김민용","박도은","정윤홍","류지수","예지우","황찬우A","김이재","김민기","은다현","","","김예원","임유진","유상현","권휘우","이예준","손서인","이세윤","정유진","나진영","이재우","오유진","유준희","장지민","김민규","서전형"],"2026-07-26":["권기수","조성원","노유빈","정유찬A","류지안","권휘우","김민규","권예원","오유진","최선우","신지원","박소운","","","최유현","남형규","최서현","서전형","류지수","김이재","이소명","이다솔","이예준","이상민","임세영","손서인","신이현","김가영","박진이"]};
+const ROUTINE_DATES={"2026-07-20":["은다현","나진영","류지수","서전형","김민기","이재우","박소운","김가영","유준희","정윤홍","황찬우A","김민규","유세진","최정웅","박강빈","권예원","최서현","김이재","임세영","신지원","한준희","유서진","지민욱","유상현","손서인","예지우","이예준","김병찬","김민우"],"2026-07-21":["유상현","정유찬A","손서인","이상민","류지안","이예준","오유진","박진이","김이재","권예원","김민우","지민욱","","","박소운","조민지","이재우","김준태","예지우","김민용","김민규","정윤홍","최서현","류지수","최보겸","박강빈","권휘우","박도은","최선우"],"2026-07-22":["조성원","신지원","남형규","권휘우","이현구","한준희","강서현","김나영","최선우","이다솔","최유현","김병찬","유세진","최정웅","이찬신","유서진","신이현","박도은","서연우","김민기","박소운","황찬우A","권기수","서전형","노유빈","임세영","임유진","유준희","이세윤"],"2026-07-23":["서연우","박도은","권기수","최보겸","이상민","임유진","예지우","장지민","최서현","정유진","유서진","이찬신","","","강서현","김민우","이세윤","황찬우A","노유빈","류지수","류지안","김예원","오유진","양예원","박진이","남형규","김가영","이소명","나진영"],"2026-07-24":["손서인","신이현","권예원","정유찬A","박강빈","이현구","은다현","임세영","조민지","김가영","김병찬","조성원","유세진","최정웅","권휘우","이소명","유상현","장지민","나진영","이다솔","강서현","김나영","이예준","최유현","유준희","김민용","김민기","김준태","이상민"],"2026-07-25":["류지안","이소명","박도은","서전형","노유빈","한준희","김예원","정윤홍","김민용","최선우","김준태","김민규","","","은다현","권기수","오유진","임유진","박진이","이현구","신이현","김이재","이재우","조성원","이세윤","지민욱","정유진","신지원","양예원"],"2026-07-26":["예지우","양예원","이예준","김민기","최보겸","김민우","김나영","김이재","장지민","유준희","남형규","박강빈","","","서전형","최유현","최선우","정유진","김가영","김예원","은다현","조민지","나진영","이다솔","김병찬","정유찬A","서연우","지민욱","이찬신"]};
 const RT_CATS=[["아침","rt-a"],["점심","rt-l"],["저녁","rt-d"],["혼정","rt-n"]];
 function rtEffDate(now){ const[h,m]=ROUTINE_SWITCH.split(":").map(Number); const d=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   if(now.getHours()*60+now.getMinutes()>=h*60+m) d.setDate(d.getDate()+1); return d; }
 function rtKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function rtDispKey(now){ let k=rtKey(rtEffDate(now)); const ks=Object.keys(ROUTINE_DATES).sort(); if(ks.length&&k<ks[0]) k=ks[0]; return k; }
 let rtShownKey="";
 function renderRoutine(){
   const el=document.getElementById("board_routine"); if(!el) return;
-  const now=new Date(), eff=rtEffDate(now), key=rtKey(eff); rtShownKey=key;
+  const now=new Date(); const key=rtDispKey(now), eff=new Date(key+"T00:00:00"); rtShownKey=key;
   const names=ROUTINE_DATES[key];
-  const preview=key!==rtKey(now)?'<span class="pill w">내일 미리보기</span>':"";
+  const tmr=rtKey(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
+  const preview=key===rtKey(now)?"":('<span class="pill w">'+(key===tmr?"내일 미리보기":"미리보기")+"</span>");
   const head='<div class="rtdate">📅 <b>'+fmt(eff)+' 루틴</b>'+preview+'<span class="rtnext">매일 '+ROUTINE_SWITCH+' 다음날로 전환</span></div>';
   let body;
   if(!names){
@@ -606,25 +639,27 @@ function renderRoutine(){
     const groups=new Map();
     ROUTINE_TASKS.forEach((t,i)=>{ const nm=names[i]; if(!nm) return;
       const k=t.join("|"); if(!groups.has(k)) groups.set(k,{t,who:[]}); groups.get(k).who.push(nm); });
-    let html="";
+    const secs={};
     for(const[cat,cls] of RT_CATS){
       const list=[...groups.values()].filter(g=>g.t[0]===cat);
       if(!list.length) continue;
-      html+='<div class="rtsec '+cls+'"><div class="rh">'+cat+'</div>'+list.map(g=>
+      secs[cat]='<div class="rtsec '+cls+'"><div class="rh">'+cat+'</div>'+list.map(g=>
         '<div class="rtrow"><span class="tm">'+esc(g.t[3])+'</span><span class="tk"><span class="lc">'+esc(g.t[1])+'</span>'+esc(g.t[2])+' — <b>'+esc(g.who.join(" · "))+'</b></span></div>').join("")+'</div>';
     }
-    body='<div class="rtgrid">'+html+'</div>';
+    const c1=secs["아침"]||"", c2=["점심","저녁","혼정"].map(c=>secs[c]||"").join("");
+    body=(c1&&c2)?'<div class="rtgrid"><div class="rtcol">'+c1+'</div><div class="rtcol">'+c2+'</div></div>'
+      :'<div class="rtgrid one"><div class="rtcol">'+(c1||c2)+'</div></div>';
   }
   el.innerHTML='<div class="rtwrap">'+head+body+'</div>';
 }
-function initRoutine(){ renderRoutine(); setInterval(()=>{ if(rtKey(rtEffDate(new Date()))!==rtShownKey) renderRoutine(); },15000); }
+function initRoutine(){ renderRoutine(); setInterval(()=>{ if(rtDispKey(new Date())!==rtShownKey) renderRoutine(); },15000); }
 /* RT-END */
 
 /* WK-BEGIN 루틴 1주차 표 (하단 조회 섹션) */
 function initRoutineWeek(){
   const el=document.getElementById("routineBody"); if(!el) return;
   const ks=Object.keys(ROUTINE_DATES).sort();
-  const ti=ks.indexOf(rtKey(rtEffDate(new Date())));
+  const ti=ks.indexOf(rtDispKey(new Date()));
   let rows="",lastCat="";
   ROUTINE_TASKS.forEach((t,i)=>{
     const catCell=t[0]!==lastCat?t[0]:""; lastCat=t[0];
@@ -632,7 +667,7 @@ function initRoutineWeek(){
       +ks.map((k,j)=>{ const n=ROUTINE_DATES[k][i]||""; const cl=[j===ti?"today":"",n?"":"dim"].filter(Boolean).join(" ");
         return '<td'+(cl?' class="'+cl+'"':'')+'>'+esc(n)+'</td>'; }).join("")+'</tr>';
   });
-  el.innerHTML='<div class="note" style="margin:2px 0 8px">1주차(7/20~7/26)만 공개 — 2·3주차는 확정 후 반영됩니다.</div>'
+  el.innerHTML='<div class="note" style="margin:2px 0 8px">1주차(7/20~7/26) 공지 — 2·3주차는 확정 후 반영됩니다.</div>'
     +'<div class="rtscroll"><table class="rttbl"><thead><tr><th>구분</th><th>위치</th><th>업무</th><th>시간</th>'
     +ks.map((k,j)=>'<th'+(j===ti?' class="today"':'')+'>'+fmt(new Date(k+"T00:00:00"))+'</th>').join("")
     +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -720,20 +755,25 @@ function renderStudents(){
 
 /* HL-BEGIN 보건실 재실 현황 */
 let HEALTH=[], HL_ERR="";
-function perSummary(s){ if(!s) return ""; if(s.indexOf("하루종일")>=0) return "하루종일";
-  const ns=(s.match(/\d+/g)||[]).map(Number).sort((a,b)=>a-b); if(!ns.length) return s;
-  const parts=[]; let a=ns[0],b=ns[0];
-  for(let i=1;i<=ns.length;i++){ if(ns[i]===b+1){ b=ns[i]; } else { parts.push(a===b?a+"교시":a+"~"+b+"교시"); a=b=ns[i]; } }
-  return parts.join(", ");
-}
+function hlDate(s){ s=String(s==null?"":s).trim(); if(!s) return null;
+  let m=s.match(/(\d{4})[.\-\/]\s*(\d{1,2})[.\-\/]\s*(\d{1,2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})/); if(!m) return null;
+  let a=+m[1],b=+m[2],y=+m[3]; if(y<100)y+=2000; let day,mon;
+  if(a>12){day=a;mon=b;} else if(b>12){day=b;mon=a;} else {day=a;mon=b;} /* 폼 응답 DD/MM/YYYY 우선(외출외박과 동일) */
+  const dt=new Date(y,mon-1,day); return isNaN(dt.getTime())?null:dt; }
+function hlRange(s){ const parts=String(s==null?"":s).split(",").map(x=>x.trim()).filter(Boolean);
+  if(!parts.length) return "";
+  if(parts.some(p=>p.indexOf("하루종일")>=0)) return "하루종일";
+  return parts.length===1?parts[0]:parts[0]+"~"+parts[parts.length-1]; }
 async function loadHealth(){
   const el=document.getElementById("board_health"); if(!el) return;
   if(!isSet(CONFIG.healthSheet)){
-    el.innerHTML='<div class="ph"><span>구글폼 연결 시 표시 — 보건 SA가 폼으로 등록하면 여기 실시간 표시됩니다</span><span class="k">CONFIG.healthSheet · links.form_health</span></div>';
+    el.innerHTML='<div class="ph"><span>구글폼 연결 시 표시</span><span class="k">CONFIG.healthSheet · links.form_health</span></div>';
     const c=document.getElementById("healthCount"); if(c) c.textContent=""; return; }
   try{ const{id}=parseSheet(CONFIG.healthSheet);
     const csv=await fetchCsv("https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv");
-    HEALTH=toObjects(parseCSV(csv)).map(r=>({ nm:stf(r,"이름"), loc:stf(r,"위치")||stf(r,"보건실"), day:stf(r,"요일"), per:stf(r,"교시") })).filter(x=>x.nm);
+    HEALTH=toObjects(parseCSV(csv)).map(r=>({ nm:stf(r,"이름"), cls:stf(r,"반"), date:hlDate(stf(r,"날짜")),
+      loc:stf(r,"위치"), per:stf(r,"시간") })).filter(x=>x.nm);
     HL_ERR="";
   }catch(e){ HL_ERR=e.message; }
   renderHealth();
@@ -745,22 +785,22 @@ function renderHealth(){
     ?'<a class="open" style="margin:0" target="_blank" rel="noopener" href="'+CONFIG.links.form_health+'">＋ 등록 (구글폼) ↗</a>'
     :'<span class="note" style="margin:0">등록 폼 미설정 — <b>links.form_health</b></span>';
   const head='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+btn+'<button class="linkbtn" onclick="loadHealth()">↻ 새로고침</button></div>';
-  if(HL_ERR){ el.innerHTML='<div class="hlwrap">'+head+'<div class="err">보건실 데이터 로드 실패: '+esc(HL_ERR)+'</div></div>'; return; }
-  const today=DOW[new Date().getDay()];
+  if(HL_ERR){ el.innerHTML='<div class="hlwrap">'+head+'<div class="err">보건실 데이터 로드 실패: '+esc(HL_ERR)+'</div></div>'; if(cnt) cnt.textContent=""; return; }
+  const todayKey=rtKey(new Date());
   const latest=new Map();
-  HEALTH.forEach(h=>{ if((h.day||"").charAt(0)!==today) return; if((h.per||"").indexOf("퇴실")>=0){ latest.delete(h.nm); return; } latest.set(h.nm,h); });
-  const list=[...latest.values()];
-  if(cnt) cnt.textContent=list.length?("오늘 "+list.length+"명"):"";
-  if(!list.length){ el.innerHTML='<div class="hlwrap">'+head+'<div class="empty" style="padding:16px">오늘('+today+'요일) 보건실 재실 학생 없음</div></div>'; return; }
-  const locs=["다산관","덕고관"]; let body="";
-  const row=h=>{ const st=STUDENTDB[h.nm];
-    const extra=st&&(st.cls||st.room)?' <span class="amuted">'+esc([st.cls?st.cls+"반":"",st.room].filter(Boolean).join(" · "))+'</span>':"";
-    return '<div class="hlrow"><b>'+esc(h.nm)+'</b>'+extra+'<span class="hlper">'+esc(perSummary(h.per))+'</span></div>'; };
-  for(const L of locs){ const g=list.filter(x=>(x.loc||"").indexOf(L)>=0); if(!g.length) continue;
-    body+='<div class="hlgrp"><div class="hlh">'+L+' 보건실 <span class="agc">'+g.length+'</span></div>'+g.map(row).join("")+'</div>'; }
-  const etc=list.filter(x=>!locs.some(L=>(x.loc||"").indexOf(L)>=0));
-  if(etc.length) body+='<div class="hlgrp"><div class="hlh">기타 <span class="agc">'+etc.length+'</span></div>'+etc.map(row).join("")+'</div>';
-  el.innerHTML='<div class="hlwrap">'+head+body+'</div>';
+  HEALTH.forEach(h=>{ if(!h.date) return; const dk=rtKey(h.date); if(dk<todayKey) return;
+    const key=h.nm+"|"+dk;
+    if((h.per||"").indexOf("퇴실")>=0){ latest.delete(key); return; }
+    latest.set(key,h); });
+  const clsNo=h=>{ const c=h.cls||(STUDENTDB[h.nm]&&STUDENTDB[h.nm].cls)||""; const n=String(c).replace(/[^0-9]/g,""); return n?+n:999; };
+  const clsTxt=h=>{ const c=h.cls||(STUDENTDB[h.nm]&&STUDENTDB[h.nm].cls)||""; if(!c) return "—"; return /^\d+$/.test(String(c).trim())?String(c).trim()+"반":esc(String(c)); };
+  const list=[...latest.values()].sort((a,b)=>rtKey(a.date).localeCompare(rtKey(b.date))||clsNo(a)-clsNo(b)||a.nm.localeCompare(b.nm,"ko"));
+  if(list.length && STUDENTS===null && !ST_LOADING && isSet(CONFIG.studentDbSheet)) loadStudents();
+  const tn=list.filter(h=>rtKey(h.date)===todayKey).length;
+  if(cnt) cnt.textContent=tn?("오늘 "+tn+"명"):(list.length?("예정 "+list.length+"건"):"");
+  if(!list.length){ el.innerHTML='<div class="hlwrap">'+head+'<div class="empty" style="padding:16px">보건실 재실 학생 없음</div></div>'; return; }
+  const rows=list.map(h=>'<tr'+(rtKey(h.date)===todayKey?' class="hltoday"':'')+'><td class="hld">'+fmt(h.date)+'</td><td>'+clsTxt(h)+'</td><td><b>'+esc(h.nm)+'</b></td><td>'+esc(h.loc)+'</td><td class="hlp">'+esc(hlRange(h.per))+'</td></tr>').join("");
+  el.innerHTML='<div class="hlwrap">'+head+'<div class="rtscroll" style="max-height:280px"><table class="hltbl"><thead><tr><th>날짜</th><th>반</th><th>학생 이름</th><th>위치</th><th>재실 시간</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 /* HL-END */
 
