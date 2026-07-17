@@ -30,6 +30,46 @@
   .bcard iframe{border:0;width:100%;flex:1;min-height:220px}
   .ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);font-size:12px;text-align:center;padding:16px}
   .ph .k{font-family:monospace;font-size:11px;background:var(--redbg);color:var(--red);padding:2px 7px;border-radius:7px}
+  /* 루틴 보드 */
+  .rtwrap{padding:11px 13px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .rtdate{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+  .rtdate b{color:var(--ink);font-size:13.5px}
+  .rtnext{margin-left:auto;font-size:11px;background:#eff5fc;color:var(--blue);border-radius:7px;padding:2px 8px}
+  .rtgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:9px;align-items:start}
+  .rtsec{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .rtsec .rh{padding:6px 10px;font-size:12px;font-weight:700}
+  .rtrow{display:flex;gap:7px;padding:5px 10px;font-size:12.5px;border-top:1px solid var(--line);align-items:baseline}
+  .rtrow:first-of-type{border-top:0}
+  .rtrow .tm{flex:0 0 auto;font-size:10.5px;color:var(--muted);font-family:monospace;padding-top:1px}
+  .rtrow .tk{flex:1 1 auto;color:var(--ink)}
+  .rtrow .lc{color:var(--muted);font-size:11px;margin-right:4px}
+  .rt-a .rh{background:var(--greenbg);color:var(--green)}
+  .rt-l .rh{background:var(--amberbg);color:var(--amber)}
+  .rt-d .rh{background:#e8f0fa;color:var(--navy)}
+  .rt-n .rh{background:#efe9f7;color:#5b3e8e}
+  /* 루틴 1주차 표 */
+  .rtscroll{overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .rttbl{border-collapse:collapse;font-size:12px;min-width:780px;width:100%}
+  .rttbl th,.rttbl td{border:1px solid var(--line);padding:4px 7px;text-align:center;white-space:nowrap}
+  .rttbl thead th{background:#eff3f9;color:var(--navy);font-weight:700;position:sticky;top:0}
+  .rttbl td.rc{font-weight:700;color:var(--green)}
+  .rttbl tr.catstart td{border-top:2px solid #cfd8e6}
+  .rttbl td.dim{color:#ccd1da}
+  .rttbl td.rtm{font-family:monospace;font-size:11px}
+  .rttbl .today{background:var(--greenbg)}
+  /* 학생 정보 */
+  .srow{padding:7px 9px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .srow:last-child{border-bottom:0}
+  .srow .l2{color:var(--muted);font-size:12px;margin-top:2px}
+  .schip{background:#eff5fc;color:var(--blue);border-radius:7px;padding:1px 7px;font-size:11px;font-weight:600;margin-left:6px;white-space:nowrap}
+  .schip.dim{background:#f1f2f5;color:#9aa1ab}
+  .st-alg{color:var(--red);font-weight:600}
+  /* 보건실 보드 */
+  .hlwrap{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .hlgrp{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .hlh{background:var(--redbg);color:var(--red);font-size:12px;font-weight:700;padding:5px 10px}
+  .hlrow{display:flex;align-items:baseline;gap:7px;padding:5px 10px;border-top:1px solid var(--line);font-size:12.5px}
+  .hlrow .hlper{margin-left:auto;font-size:11px;background:#eff5fc;color:var(--blue);border-radius:7px;padding:1px 7px;white-space:nowrap}
   /* metrics */
   .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .metric{border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
@@ -173,10 +213,14 @@
     <div class="bh" style="background:var(--greenbg);color:var(--green)">🌅 루틴 업무</div>
     <div id="board_routine"></div>
   </div>
-  <div class="board" style="grid-template-columns:1fr">
+  <div class="board">
     <div class="bcard">
       <div class="bh" style="background:var(--amberbg);color:var(--amber)">🚪 현재 외부 학생 (외출·외박)<span id="outsideCount" style="margin-left:auto;font-weight:400;font-size:12px;opacity:.85"></span></div>
       <div id="board_outside"></div>
+    </div>
+    <div class="bcard">
+      <div class="bh" style="background:var(--redbg);color:var(--red)">🏥 보건실 재실 현황<span id="healthCount" style="margin-left:auto;font-weight:400;font-size:12px;opacity:.85"></span></div>
+      <div id="board_health"></div>
     </div>
   </div>
 
@@ -249,7 +293,7 @@
   </div>
   <div class="gcard" style="margin-bottom:13px">
     <details id="routineDetails">
-      <summary><span class="i">🌅</span><span class="lbl">루틴 · 등대지기</span><span class="tag">시트 ▾</span></summary>
+      <summary><span class="i">🌅</span><span class="lbl">루틴 · 등대지기 (1주차)</span><span class="tag">1주차 ▾</span></summary>
       <div class="body" id="routineBody"></div>
     </details>
   </div>
@@ -269,8 +313,13 @@ const CONFIG = {
      기본은 gviz CSV (시트가 '링크가 있는 모든 사용자=뷰어'면 동작). 안 되면 게시 CSV 주소로 교체. */
   cardDataCsv: "https://docs.google.com/spreadsheets/d/1AfTq4PyY1kZEUwSgR-tOoyeQuHRQWFqN6nB-gpsfSWk/gviz/tq?tqx=out:csv",
   cardSheetUrl: "https://docs.google.com/spreadsheets/d/1AfTq4PyY1kZEUwSgR-tOoyeQuHRQWFqN6nB-gpsfSWk/edit",
-  /* 학생 DB(반·호실·개인정보) CSV — 채우면 검색에 반/호실/연락처가 함께 표시됨 */
+  /* 학생 DB — 'DB 관리보드 GLPS 44'를 구글시트로 변환(파일>Google Sheets로 저장)하고
+     '링크가 있는 모든 사용자: 뷰어'로 공유한 뒤 그 주소를 붙여넣기.
+     DB · 이름_반_방 · 클래스PA·층LA · 동명이인·형제자매 탭을 읽습니다. */
+  studentDbSheet: "",
   studentDbCsv: "",
+  /* 보건실 재실 — 구글폼 '응답 시트' 주소 (링크 뷰어 공유). 폼 링크는 links.form_health */
+  healthSheet: "",
   /* 외출외박 응답 시트 CSV — '현재 외부 학생' 보드가 승인 여부·날짜로 자동 계산됨.
      시트 공유가 '링크가 있는 모든 사용자: 뷰어'여야 동작. 안 되면 웹에 게시 CSV 주소로 교체. */
   outingDataCsv: "https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/gviz/tq?tqx=out:csv",
@@ -278,6 +327,7 @@ const CONFIG = {
     board_routine:"", board_outside:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
+    form_counsel:"", form_health:"",
     sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
     sheet_routine:"", sheet_weekend:"", sheet_students:"", sheet_assistant:""
   }
@@ -285,6 +335,8 @@ const CONFIG = {
 const FORMS = [
   { key:"form_card",   icon:"🏷️", title:"카드 발급 (Reward·Warning·Penalty)" },
   { key:"form_outing", icon:"📝", title:"외출외박 신청" },
+  { key:"form_counsel", icon:"💬", title:"LA 상담 신청" },
+  { key:"form_health",  icon:"🏥", title:"보건실 재실 등록" },
 ];
 const SHEETS = [
   { key:"sheet_weekend",  icon:"🎲", title:"주말 업무 배정" },
@@ -528,12 +580,200 @@ function tick(){ const now=new Date(); document.getElementById("campsub").textCo
   document.getElementById("chipPeriod").innerHTML="⏰ <b>"+periodInfo(now)+"</b>";
   document.getElementById("chipClock").textContent=now.toTimeString().slice(0,5); }
 
+/* RT-BEGIN 오늘의 루틴 (자동배분_명단 내장) */
+const ROUTINE_SWITCH="22:30"; /* 이 시각부터 다음날 루틴 표시 */
+const ROUTINE_TASKS=[["아침","식당","손소독제","07:00~07:30"],["아침","식당","질서유지","07:00~07:30"],["아침","식당","잔반지도","07:30~08:00"],["아침","등대지기","2층 등대지기","07:15~07:45"],["아침","등대지기","3층 등대지기","07:15~07:45"],["아침","등대지기","4층 등대지기","07:15~07:45"],["아침","등대지기","5층 등대지기","07:15~07:45"],["아침","등대지기","6층 등대지기","07:15~07:45"],["아침","등대지기","7층 등대지기","07:15~07:45"],["아침","등대지기","8층 등대지기","07:15~07:45"],["아침","등대지기","9층 등대지기","07:15~07:45"],["아침","등대지기","10층 등대지기","07:15~07:45"],["아침","창의관","빨래통 상하역","07:00~07:30"],["아침","창의관","빨래통 상하역","07:00~07:30"],["점심","홀베","엘리베이터 질서유지","12:55~13:25"],["점심","짝베","엘리베이터 질서유지","12:55~13:25"],["점심","식당","손소독제","12:55~13:25"],["점심","식당","질서유지","12:55~13:25"],["점심","식당","잔반지도","13:20~13:50"],["점심","식당","잔반지도","13:20~13:50"],["저녁","홀베","엘리베이터 질서유지","17:40~18:10"],["저녁","짝베","엘리베이터 질서유지","17:40~18:10"],["저녁","식당","손소독제","17:40~18:10"],["저녁","식당","질서유지","17:40~18:10"],["저녁","식당","잔반지도","18:05~18:35"],["저녁","식당","잔반지도","18:05~18:35"],["혼정","식당","혼정빵","21:30~22:30"],["혼정","식당","혼정빵","21:30~22:30"],["혼정","식당","분리수거","21:30~22:30"]];
+const ROUTINE_DATES={"2026-07-20":["김예원","이현구","양예원","김민용","신이현","오유진","류지안","지민욱","서전형","정윤홍","권휘우","신지원","유세진","최정웅","장지민","정유진","서연우","임세영","김병찬","권예원","남형규","조민지","최유현","김민우","유서진","한준희","김나영","임유진","이예준"],"2026-07-21":["이다솔","조성원","노유빈","정유찬A","정유진","김민기","류지수","이재우","박강빈","박도은","유준희","손서인","","","이소명","최보겸","이세윤","나진영","이상민","황찬우A","이찬신","권기수","유상현","최선우","김민규","은다현","김준태","김이재","강서현"],"2026-07-22":["남형규","최유현","임유진","이소명","유상현","김이재","김민우","김민규","황찬우A","임세영","김병찬","은다현","유세진","최정웅","김준태","이찬신","류지안","한준희","지민욱","강서현","양예원","김예원","김가영","박진이","류지수","박소운","조민지","예지우","최서현"],"2026-07-23":["권기수","서연우","장지민","이세윤","나진영","이상민","유서진","이예준","예지우","유준희","김민기","강서현","","","김민용","신이현","박도은","최선우","신지원","박소운","김나영","최보겸","정윤홍","서전형","권예원","권휘우","이현구","박강빈","이재우"],"2026-07-24":["김나영","최보겸","조민지","이찬신","최선우","권예원","한준희","박강빈","이상민","지민욱","임세영","박소운","유세진","최정웅","조성원","이현구","박진이","김가영","유서진","김민우","노유빈","정유찬A","최서현","류지안","김병찬","신지원","이다솔","손서인","오유진"],"2026-07-25":["김준태","서연우","양예원","김민용","박도은","정윤홍","류지수","예지우","황찬우A","김이재","김민기","은다현","","","김예원","임유진","유상현","권휘우","이예준","손서인","이세윤","정유진","나진영","이재우","오유진","유준희","장지민","김민규","서전형"],"2026-07-26":["권기수","조성원","노유빈","정유찬A","류지안","권휘우","김민규","권예원","오유진","최선우","신지원","박소운","","","최유현","남형규","최서현","서전형","류지수","김이재","이소명","이다솔","이예준","이상민","임세영","손서인","신이현","김가영","박진이"]};
+const RT_CATS=[["아침","rt-a"],["점심","rt-l"],["저녁","rt-d"],["혼정","rt-n"]];
+function rtEffDate(now){ const[h,m]=ROUTINE_SWITCH.split(":").map(Number); const d=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if(now.getHours()*60+now.getMinutes()>=h*60+m) d.setDate(d.getDate()+1); return d; }
+function rtKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+let rtShownKey="";
+function renderRoutine(){
+  const el=document.getElementById("board_routine"); if(!el) return;
+  const now=new Date(), eff=rtEffDate(now), key=rtKey(eff); rtShownKey=key;
+  const names=ROUTINE_DATES[key];
+  const preview=key!==rtKey(now)?'<span class="pill w">내일 미리보기</span>':"";
+  const head='<div class="rtdate">📅 <b>'+fmt(eff)+' 루틴</b>'+preview+'<span class="rtnext">매일 '+ROUTINE_SWITCH+' 다음날로 전환</span></div>';
+  let body;
+  if(!names){
+    const ks=Object.keys(ROUTINE_DATES).sort();
+    const msg=key<ks[0]?"루틴 시작 전 — "+fmt(new Date(ks[0]+"T00:00:00"))+"부터 표시됩니다":"2·3주차 루틴은 확정 후 반영됩니다";
+    body='<div class="ph"><span>'+msg+'</span></div>';
+  } else {
+    const groups=new Map();
+    ROUTINE_TASKS.forEach((t,i)=>{ const nm=names[i]; if(!nm) return;
+      const k=t.join("|"); if(!groups.has(k)) groups.set(k,{t,who:[]}); groups.get(k).who.push(nm); });
+    let html="";
+    for(const[cat,cls] of RT_CATS){
+      const list=[...groups.values()].filter(g=>g.t[0]===cat);
+      if(!list.length) continue;
+      html+='<div class="rtsec '+cls+'"><div class="rh">'+cat+'</div>'+list.map(g=>
+        '<div class="rtrow"><span class="tm">'+esc(g.t[3])+'</span><span class="tk"><span class="lc">'+esc(g.t[1])+'</span>'+esc(g.t[2])+' — <b>'+esc(g.who.join(" · "))+'</b></span></div>').join("")+'</div>';
+    }
+    body='<div class="rtgrid">'+html+'</div>';
+  }
+  el.innerHTML='<div class="rtwrap">'+head+body+'</div>';
+}
+function initRoutine(){ renderRoutine(); setInterval(()=>{ if(rtKey(rtEffDate(new Date()))!==rtShownKey) renderRoutine(); },15000); }
+/* RT-END */
+
+/* WK-BEGIN 루틴 1주차 표 (하단 조회 섹션) */
+function initRoutineWeek(){
+  const el=document.getElementById("routineBody"); if(!el) return;
+  const ks=Object.keys(ROUTINE_DATES).sort();
+  const ti=ks.indexOf(rtKey(rtEffDate(new Date())));
+  let rows="",lastCat="";
+  ROUTINE_TASKS.forEach((t,i)=>{
+    const catCell=t[0]!==lastCat?t[0]:""; lastCat=t[0];
+    rows+='<tr'+(catCell?' class="catstart"':'')+'><td class="rc">'+esc(catCell)+'</td><td>'+esc(t[1])+'</td><td>'+esc(t[2])+'</td><td class="rtm">'+esc(t[3])+'</td>'
+      +ks.map((k,j)=>{ const n=ROUTINE_DATES[k][i]||""; const cl=[j===ti?"today":"",n?"":"dim"].filter(Boolean).join(" ");
+        return '<td'+(cl?' class="'+cl+'"':'')+'>'+esc(n)+'</td>'; }).join("")+'</tr>';
+  });
+  el.innerHTML='<div class="note" style="margin:2px 0 8px">1주차(7/20~7/26)만 공개 — 2·3주차는 확정 후 반영됩니다.</div>'
+    +'<div class="rtscroll"><table class="rttbl"><thead><tr><th>구분</th><th>위치</th><th>업무</th><th>시간</th>'
+    +ks.map((k,j)=>'<th'+(j===ti?' class="today"':'')+'>'+fmt(new Date(k+"T00:00:00"))+'</th>').join("")
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+/* WK-END */
+
+/* ST-BEGIN 학생 정보 (구글시트 실시간) */
+let STUDENTS=null, ST_LOADING=false, ST_PA={}, ST_LA={};
+function stf(o,sub){ const k=Object.keys(o).find(k=>k.indexOf(sub)>=0); return k?String(o[k]==null?"":o[k]).trim():""; }
+function stCsvUrl(name){ const{id}=parseSheet(CONFIG.studentDbSheet); return "https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv&sheet="+encodeURIComponent(name); }
+function stHeaderRow(rows,anchor){ for(let i=0;i<Math.min(rows.length,8);i++){ if((rows[i]||[]).some(c=>String(c==null?"":c).indexOf(anchor)>=0)) return i; } return 0; }
+function stObjects(rows,anchor){ const h=stHeaderRow(rows,anchor); const head=(rows[h]||[]).map(x=>String(x==null?"":x).trim());
+  return rows.slice(h+1).filter(r=>r.some(x=>x&&String(x).trim())).map(r=>{ const o={}; head.forEach((k,i)=>{ if(k) o[k]=String(r[i]==null?"":r[i]).trim(); }); return o; }); }
+function floorOf(room){ const dg=String(room==null?"":room).replace(/[^0-9]/g,""); if(!dg) return ""; const n=+dg; return n>=100?String(Math.floor(n/100)):""; }
+async function loadStudents(force){
+  const el=document.getElementById("studentBody"); if(!el) return;
+  if(!isSet(CONFIG.studentDbSheet)){ el.innerHTML='<div class="miss">링크 미설정 — <span class="k">CONFIG.studentDbSheet</span> · DB 관리보드를 구글시트로 변환한 주소를 붙여넣으세요.</div>'; return; }
+  if(ST_LOADING) return; if(STUDENTS&&!force){ renderStudents(); return; }
+  ST_LOADING=true; el.innerHTML='<div class="empty">학생 DB 불러오는 중…</div>';
+  try{
+    const[dbR,rrR,plR,sbR]=await Promise.all([
+      fetchCsv(stCsvUrl("DB")),
+      fetchCsv(stCsvUrl("이름_반_방")).catch(()=>""),
+      fetchCsv(stCsvUrl("클래스PA·층LA")).catch(()=>""),
+      fetchCsv(stCsvUrl("동명이인·형제자매")).catch(()=>"")
+    ]);
+    const db=stObjects(parseCSV(dbR),"한글명");
+    const rr=rrR?stObjects(parseCSV(rrR),"한글명"):[];
+    const plRows=plR?parseCSV(plR):[];
+    const sb=sbR?stObjects(parseCSV(sbR),"이름1"):[];
+    const roomBy={},clsBy={};
+    rr.forEach(r=>{ const nm=stf(r,"한글명")||stf(r,"이름"); if(!nm||nm.indexOf("※")>=0) return;
+      const c=stf(r,"반"); if(c) clsBy[nm]=c; const rm=stf(r,"호실")||stf(r,"방"); if(rm) roomBy[nm]=rm; });
+    ST_PA={}; ST_LA={};
+    (function(){ const h=stHeaderRow(plRows,"담당"); const head=plRows[h]||[];
+      const ci=s=>head.findIndex(x=>String(x==null?"":x).indexOf(s)>=0);
+      const cB=ci("반"),cP=ci("PA"),cF=ci("층"),cL=ci("LA");
+      plRows.slice(h+1).forEach(r=>{
+        if(cB>=0&&cP>=0){ const b=String(r[cB]==null?"":r[cB]).trim(),p=String(r[cP]==null?"":r[cP]).trim(); if(b&&p) ST_PA[b.replace(/[^0-9]/g,"")||b]=p; }
+        if(cF>=0&&cL>=0){ const f=String(r[cF]==null?"":r[cF]).trim(),l=String(r[cL]==null?"":r[cL]).trim(); if(f&&l) ST_LA[f.replace(/[^0-9]/g,"")||f]=l; } });
+    })();
+    if(!Object.keys(ST_LA).length){ ASSISTANTS.forEach(a=>{ const m=(a.role||"").match(/\((\d+)층\)/); if(m) ST_LA[m[1]]=a.kr; }); }
+    const sibBy={};
+    sb.forEach(r=>{ const a=stf(r,"이름1"),b=stf(r,"이름2"); if(a&&b){ (sibBy[a]=sibBy[a]||[]).push(b); (sibBy[b]=sibBy[b]||[]).push(a); } });
+    STUDENTS=db.map(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return null;
+      const room=roomBy[nm]||stf(r,"배정호실")||stf(r,"호실")||"", cls=clsBy[nm]||stf(r,"반")||"";
+      const algY=stf(r,"알레르기"), algD=stf(r,"알레르기 내용");
+      return { nm, en:stf(r,"영문명"), cls, room, fl:floorOf(room), school:stf(r,"학교명"), grade:stf(r,"학년"),
+        g1:stf(r,"보호자1"), rel1:stf(r,"관계1"), ph1:stf(r,"휴대전화1"),
+        alg: algD || (/유|있|y|o/i.test(algY)?algY:""), sib:(sibBy[nm]||[]).join(" · ") };
+    }).filter(Boolean);
+    STUDENTDB={}; STUDENTS.forEach(s=>{ STUDENTDB[s.nm]={cls:s.cls,room:s.room,phone:s.ph1}; });
+    renderHealth();
+    renderStudents();
+  }catch(e){ el.innerHTML='<div class="err">학생 DB 로드 실패: '+esc(e.message)+' — 시트 공유(링크 뷰어)와 주소를 확인하세요.</div>'; }
+  finally{ ST_LOADING=false; }
+}
+function stRow(s){
+  const pa=s.cls?(ST_PA[String(s.cls).replace(/[^0-9]/g,"")]||""):"";
+  const la=s.fl?(ST_LA[s.fl]||""):"";
+  const clsChip=s.cls?'<span class="schip">'+esc(s.cls)+'반'+(pa?' · PA '+esc(pa):'')+'</span>':'<span class="schip dim">반 미정</span>';
+  const roomChip=s.room?'<span class="schip">'+esc(s.room)+(s.fl?' ('+s.fl+'층'+(la?' · LA '+esc(la):'')+')':'')+'</span>':'';
+  const bits=[];
+  if(s.school||s.grade) bits.push('🏫 '+esc([s.school,s.grade].filter(Boolean).join(" ")));
+  if(s.g1||s.ph1) bits.push('👪 '+esc(s.g1)+(s.rel1?'('+esc(s.rel1)+')':'')+(s.ph1?' <a href="tel:'+esc(s.ph1)+'">'+esc(s.ph1)+'</a>':''));
+  if(s.alg) bits.push('<span class="st-alg">⚠️ '+esc(s.alg)+'</span>');
+  if(s.sib) bits.push('👫 형제자매: '+esc(s.sib));
+  return '<div class="srow"><b>'+esc(s.nm)+'</b> <span class="aen">'+esc(s.en)+'</span>'+clsChip+roomChip
+    +(bits.length?'<div class="l2">'+bits.join(' · ')+'</div>':'')+'</div>';
+}
+function stRender(q){
+  const el=document.getElementById("stList"), c=document.getElementById("stCount"); if(!el||!STUDENTS) return;
+  q=(q||"").trim().toLowerCase();
+  const list=STUDENTS.filter(s=>!q||[s.nm,s.en,s.cls,s.room,s.school].some(v=>String(v||"").toLowerCase().includes(q)))
+    .slice().sort((a,b)=>(a.room||"뒤").localeCompare(b.room||"뒤","ko")||a.nm.localeCompare(b.nm,"ko"));
+  el.innerHTML=list.length?list.map(stRow).join(""):'<div class="empty">검색 결과 없음</div>';
+  if(c) c.textContent=(q?list.length+"명 검색됨":"총 "+STUDENTS.length+"명")+" · 반은 배정 후 자동 표시";
+}
+function renderStudents(){
+  const el=document.getElementById("studentBody");
+  el.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 8px">'
+    +'<div class="note" id="stCount" style="margin:0"></div><button id="stReload" class="linkbtn">↻ 새로고침</button></div>'
+    +'<div class="searchbox" style="margin:0 0 8px"><input id="qSt" placeholder="🔎 이름 · 영문명 · 반 · 호실 · 학교 검색"></div>'
+    +'<div id="stList"></div>';
+  document.getElementById("stReload").addEventListener("click",()=>loadStudents(true));
+  document.getElementById("qSt").addEventListener("input",e=>stRender(e.target.value));
+  stRender("");
+}
+/* ST-END */
+
+/* HL-BEGIN 보건실 재실 현황 */
+let HEALTH=[], HL_ERR="";
+function perSummary(s){ if(!s) return ""; if(s.indexOf("하루종일")>=0) return "하루종일";
+  const ns=(s.match(/\d+/g)||[]).map(Number).sort((a,b)=>a-b); if(!ns.length) return s;
+  const parts=[]; let a=ns[0],b=ns[0];
+  for(let i=1;i<=ns.length;i++){ if(ns[i]===b+1){ b=ns[i]; } else { parts.push(a===b?a+"교시":a+"~"+b+"교시"); a=b=ns[i]; } }
+  return parts.join(", ");
+}
+async function loadHealth(){
+  const el=document.getElementById("board_health"); if(!el) return;
+  if(!isSet(CONFIG.healthSheet)){
+    el.innerHTML='<div class="ph"><span>구글폼 연결 시 표시 — 보건 SA가 폼으로 등록하면 여기 실시간 표시됩니다</span><span class="k">CONFIG.healthSheet · links.form_health</span></div>';
+    const c=document.getElementById("healthCount"); if(c) c.textContent=""; return; }
+  try{ const{id}=parseSheet(CONFIG.healthSheet);
+    const csv=await fetchCsv("https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv");
+    HEALTH=toObjects(parseCSV(csv)).map(r=>({ nm:stf(r,"이름"), loc:stf(r,"위치")||stf(r,"보건실"), day:stf(r,"요일"), per:stf(r,"교시") })).filter(x=>x.nm);
+    HL_ERR="";
+  }catch(e){ HL_ERR=e.message; }
+  renderHealth();
+}
+function renderHealth(){
+  const el=document.getElementById("board_health"), cnt=document.getElementById("healthCount");
+  if(!el||!isSet(CONFIG.healthSheet)) return;
+  const btn=isSet(CONFIG.links.form_health)
+    ?'<a class="open" style="margin:0" target="_blank" rel="noopener" href="'+CONFIG.links.form_health+'">＋ 등록 (구글폼) ↗</a>'
+    :'<span class="note" style="margin:0">등록 폼 미설정 — <b>links.form_health</b></span>';
+  const head='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+btn+'<button class="linkbtn" onclick="loadHealth()">↻ 새로고침</button></div>';
+  if(HL_ERR){ el.innerHTML='<div class="hlwrap">'+head+'<div class="err">보건실 데이터 로드 실패: '+esc(HL_ERR)+'</div></div>'; return; }
+  const today=DOW[new Date().getDay()];
+  const latest=new Map();
+  HEALTH.forEach(h=>{ if((h.day||"").charAt(0)!==today) return; if((h.per||"").indexOf("퇴실")>=0){ latest.delete(h.nm); return; } latest.set(h.nm,h); });
+  const list=[...latest.values()];
+  if(cnt) cnt.textContent=list.length?("오늘 "+list.length+"명"):"";
+  if(!list.length){ el.innerHTML='<div class="hlwrap">'+head+'<div class="empty" style="padding:16px">오늘('+today+'요일) 보건실 재실 학생 없음</div></div>'; return; }
+  const locs=["다산관","덕고관"]; let body="";
+  const row=h=>{ const st=STUDENTDB[h.nm];
+    const extra=st&&(st.cls||st.room)?' <span class="amuted">'+esc([st.cls?st.cls+"반":"",st.room].filter(Boolean).join(" · "))+'</span>':"";
+    return '<div class="hlrow"><b>'+esc(h.nm)+'</b>'+extra+'<span class="hlper">'+esc(perSummary(h.per))+'</span></div>'; };
+  for(const L of locs){ const g=list.filter(x=>(x.loc||"").indexOf(L)>=0); if(!g.length) continue;
+    body+='<div class="hlgrp"><div class="hlh">'+L+' 보건실 <span class="agc">'+g.length+'</span></div>'+g.map(row).join("")+'</div>'; }
+  const etc=list.filter(x=>!locs.some(L=>(x.loc||"").indexOf(L)>=0));
+  if(etc.length) body+='<div class="hlgrp"><div class="hlh">기타 <span class="agc">'+etc.length+'</span></div>'+etc.map(row).join("")+'</div>';
+  el.innerHTML='<div class="hlwrap">'+head+body+'</div>';
+}
+/* HL-END */
+
 /* ---------- init ---------- */
-boardSlot("board_routine","board_routine");
+initRoutine();
 loadOutings();
+loadHealth();
 function fullSheet(bodyId,key){ const u=CONFIG.links[key], el=document.getElementById(bodyId);
   el.innerHTML=isSet(u)?`<a class="open" href="${sheetOpen(u)}" target="_blank" rel="noopener">새 탭에서 열기 ↗</a><iframe src="${sheetEmbed(u)}" loading="lazy"></iframe>`:`<div class="miss">링크 미설정 — <span class="k">links.${key}</span></div>`; }
-fullSheet("studentBody","sheet_students"); fullSheet("routineBody","sheet_routine");
+initRoutineWeek();
 
 /* ---------- 어시스턴트 명단 (내장) ---------- */
 const ASSISTANTS = [{"cat": "TA", "sub": "Head TA", "role": "HT", "kr": "최선재", "en": "Sunjae Choi", "wave": "24", "gen": "M", "room": "창의관 107", "phone": "010-8575-3726", "email": "sunjaeianchoi@gmail.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP1/Leader", "kr": "박도은", "en": "Doeun Park", "wave": "24", "gen": "F", "room": "창의관 203", "phone": "010-9285-2575", "email": "yulinara2010@naver.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP2", "kr": "김민기", "en": "Ming-gi Kim", "wave": "24", "gen": "M", "room": "창의관 309", "phone": "010-9834-1070", "email": "samuel4917@naver.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP3", "kr": "김민규", "en": "Minkyu Kim", "wave": "24", "gen": "M", "room": "창의관 309", "phone": "010-3925-9995", "email": "minkyu3925@naver.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP4", "kr": "지민욱", "en": "Minwook Chee", "wave": "28", "gen": "M", "room": "창의관 307", "phone": "010-4233-2534", "email": "minwook070607@gmail.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP5", "kr": "김병찬", "en": "Byeongchan Kim", "wave": "28", "gen": "M", "room": "창의관 307", "phone": "010-9814-4817", "email": "rlaqudcks0420@gmail.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP6", "kr": "정윤홍", "en": "Yunhong Jung", "wave": "28", "gen": "F", "room": "창의관 204", "phone": "010-5237-5277", "email": "yunhongj6@gmail.com", "note": ""}, {"cat": "TA", "sub": "FOP", "role": "FOP7", "kr": "류지안", "en": "Jian Ryu", "wave": "29", "gen": "M", "room": "창의관 308", "phone": "010-8567-1088", "email": "jianryu2007@naver.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW1/Leader", "kr": "유서진", "en": "Seojin Yoo", "wave": "25", "gen": "M", "room": "창의관 301", "phone": "010-2101-4143", "email": "seojinyoo247@gmail.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW2", "kr": "나진영", "en": "Jinyoung Na", "wave": "26", "gen": "M", "room": "창의관 305", "phone": "010-5859-5342", "email": "nanann05@korea.ac.kr", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW3", "kr": "김가영", "en": "Gayeong Kim", "wave": "27", "gen": "F", "room": "창의관 212", "phone": "010-9565-7065", "email": "pomertese.kyu@gmail.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW4", "kr": "박강빈", "en": "Kangbeen Park", "wave": "27", "gen": "M", "room": "창의관 311", "phone": "010-4250-4661", "email": "park.kangbeen@gmail.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW5", "kr": "신지원", "en": "Jiwon Shin", "wave": "27", "gen": "F", "room": "창의관 212", "phone": "010-5466-5683", "email": "jiwon.shin.633@gmail.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW6", "kr": "손서인", "en": "Seoin Sohn", "wave": "28", "gen": "M", "room": "창의관 312", "phone": "010-3288-8030", "email": "seoinsohn@gmail.com", "note": ""}, {"cat": "TA", "sub": "RW", "role": "RW7", "kr": "권휘우", "en": "Hwywoo Kwon", "wave": "28", "gen": "M", "room": "창의관 308", "phone": "010-3127-5261", "email": "hwywoo07@gmail.com", "note": ""}, {"cat": "TA", "sub": "ST", "role": "ST1/Leader", "kr": "황찬우A", "en": "Chanwoo Hwang", "wave": "26", "gen": "M", "room": "창의관 306", "phone": "010-5939-6848", "email": "callan13brown@gmail.com", "note": ""}, {"cat": "TA", "sub": "ST", "role": "ST2", "kr": "이예준", "en": "Yejun Lee", "wave": "27", "gen": "M", "room": "창의관 302", "phone": "010-9932-5299", "email": "Yejun621@outlook.com", "note": ""}, {"cat": "TA", "sub": "ST", "role": "ST3", "kr": "서전형", "en": "Johnhyeong Seo", "wave": "28", "gen": "M", "room": "창의관 312", "phone": "010-8343-4512", "email": "lionbear0401@gmail.com", "note": ""}, {"cat": "TA", "sub": "ST", "role": "ST4", "kr": "예지우", "en": "Jiwoo Ye", "wave": "28", "gen": "F", "room": "창의관 201", "phone": "010-4209-7075", "email": "jiwooella.ye@gmail.com", "note": ""}, {"cat": "TA", "sub": "ST", "role": "ST5", "kr": "유준희", "en": "Junhee Yu", "wave": "28", "gen": "F", "room": "창의관 204", "phone": "010-2041-8830", "email": "yujooni0118@naver.com", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP1/Leader", "kr": "박진이", "en": "Jini Park", "wave": "24", "gen": "F", "room": "창의관 203", "phone": "010-4757-4955", "email": "dl9828@gmail.com", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP2", "kr": "김이재", "en": "Yijae Kim", "wave": "23", "gen": "F", "room": "창의관 205", "phone": "010-3907-9096", "email": "yjk9096@snu.ac.kr", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP3", "kr": "류지수", "en": "Jisoo Ryoo", "wave": "25", "gen": "M", "room": "창의관 303", "phone": "010-8864-4937", "email": "treesooman@gmail.com", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP4", "kr": "한준희", "en": "Jooney Han", "wave": "27", "gen": "M", "room": "창의관 314", "phone": "010-8551-7793", "email": "jhan756k@gmail.com", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP5", "kr": "이상민", "en": "Sangmin Lee", "wave": "28", "gen": "M", "room": "창의관 311", "phone": "010-5917-7453", "email": "smkai7453@gmail.com", "note": ""}, {"cat": "TA", "sub": "RP", "role": "RP6", "kr": "임세영", "en": "Seyoung Lim", "wave": "28", "gen": "F", "room": "창의관 202", "phone": "010-3748-7909", "email": "imseyeong407@gmail.com", "note": ""}, {"cat": "TA", "sub": "DB", "role": "DB1/Leader", "kr": "유상현", "en": "Daniel You", "wave": "27", "gen": "M", "room": "창의관 314", "phone": "010-7568-9117", "email": "24danielyou@gmail.com", "note": ""}, {"cat": "TA", "sub": "DB", "role": "DB2", "kr": "이재우", "en": "Jaewoo Lee", "wave": "27", "gen": "M", "room": "창의관 302", "phone": "010-5969-7860", "email": "jaewoo510@gmail.com", "note": ""}, {"cat": "TA", "sub": "DB", "role": "DB3", "kr": "최서현", "en": "Seohyeon Choi", "wave": "28", "gen": "F", "room": "창의관 201", "phone": "010-4595-5400", "email": "seo.choi22@gmail.com", "note": ""}, {"cat": "TA", "sub": "GA", "role": "GA1/Leader", "kr": "권예원", "en": "Yewon Kwon", "wave": "25", "gen": "F", "room": "창의관 205", "phone": "010-9175-4623", "email": "yewonkwon04@gmail.com", "note": ""}, {"cat": "TA", "sub": "GA", "role": "GA2", "kr": "김민우", "en": "Minwoo Kim", "wave": "25", "gen": "M", "room": "창의관 304", "phone": "010-2413-9211", "email": "Ciswyattkim@gmail.com", "note": ""}, {"cat": "TA", "sub": "GA", "role": "GA3", "kr": "최선우", "en": "Sunwoo Choi", "wave": "26", "gen": "F", "room": "창의관 208", "phone": "010-8806-3726", "email": "paloaltogirl@naver.com", "note": ""}, {"cat": "TA", "sub": "GA", "role": "GA4", "kr": "오유진", "en": "Eugin Oh", "wave": "28", "gen": "F", "room": "창의관 202", "phone": "010-5101-3597", "email": "yujin359765@gmail.com", "note": ""}, {"cat": "PA", "sub": "Head PA", "role": "Head PA", "kr": "김시진", "en": "Sijin Kim", "wave": "23", "gen": "M", "room": "덕고관 103R", "phone": "010-8729-8492", "email": "kimarthur80@gmail.com", "note": ""}, {"cat": "PA", "sub": "Department PA", "role": "ED Leader", "kr": "심채린", "en": "Chaerin Shim", "wave": "24", "gen": "F", "room": "덕고관 102L", "phone": "010-9543-5001", "email": "chaerinshim@naver.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E1", "kr": "권기수", "en": "Kisu Kwon", "wave": "23", "gen": "M", "room": "덕고관 906R", "phone": "010-9174-4623", "email": "kisukwon02@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E2", "kr": "노유빈", "en": "Yoobin Noh", "wave": "23", "gen": "M", "room": "덕고관 103R", "phone": "010-7251-0429", "email": "binnynoh@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E3", "kr": "최보겸", "en": "Bogyeom Choi", "wave": "23", "gen": "M", "room": "덕고관 103R", "phone": "010-7246-5025", "email": "bgalex5025@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E4", "kr": "이찬신", "en": "Chanshin Lee", "wave": "25", "gen": "M", "room": "덕고관 103L", "phone": "010-7701-0176", "email": "jdsmile0812@naver.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E5", "kr": "조민지", "en": "Minji Cho", "wave": "25", "gen": "F", "room": "덕고관 102L", "phone": "010-5856-5147", "email": "mjicho04@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E6", "kr": "조성원", "en": "Sungwon Jo", "wave": "25", "gen": "M", "room": "창의관 301", "phone": "010-2055-2567", "email": "devansjo@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E7", "kr": "장지민", "en": "Jimin Jang", "wave": "26", "gen": "F", "room": "창의관 208", "phone": "010-2010-1542", "email": "jimin.jang543@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E8", "kr": "정유찬A", "en": "Yuchan Jung", "wave": "27", "gen": "M", "room": "창의관 313", "phone": "010-3529-4199", "email": "alexjung0703@snu.ac.kr", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E9", "kr": "신이현", "en": "Yihyun Sinn", "wave": "27", "gen": "F", "room": "창의관 206", "phone": "010-4052-9780", "email": "lina.s.holmes@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E10", "kr": "임유진", "en": "Eugene Lim", "wave": "26", "gen": "M", "room": "창의관 305", "phone": "010-9737-3945", "email": "areseugene05@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E11", "kr": "김예원", "en": "Yewon Kim", "wave": "25", "gen": "F", "room": "덕고관 102R", "phone": "010-6863-3378", "email": "kywon0318@naver.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E12", "kr": "이현구", "en": "Hyunku Lee", "wave": "25", "gen": "M", "room": "창의관 303", "phone": "010-9963-7721", "email": "hjoeyl22@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E13", "kr": "양예원", "en": "Yewon Yang", "wave": "25", "gen": "F", "room": "덕고관 102R", "phone": "010-7655-3735", "email": "clareyewonyang@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E14", "kr": "정유진", "en": "Eugene Jeung", "wave": "26", "gen": "F", "room": "덕고관 102L", "phone": "010-9522-1713", "email": "eugenejeung0225@gmail.com", "note": ""}, {"cat": "PA", "sub": "초등부", "role": "E15", "kr": "김민용", "en": "Minyong Kim", "wave": "27", "gen": "F", "room": "창의관 211", "phone": "010-2702-8936", "email": "mk48896@my.utexas.edu", "note": ""}, {"cat": "PA", "sub": "Department PA", "role": "MD Leader", "kr": "박정환", "en": "Jeonghwan Park", "wave": "25", "gen": "M", "room": "덕고관 406L", "phone": "010-5090-0210", "email": "warrenpark2004@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M1", "kr": "이다솔", "en": "Dasol Lee", "wave": "26", "gen": "F", "room": "창의관 207", "phone": "010-4657-0380", "email": "dsollee721@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M2", "kr": "김나영", "en": "Naoung Kim", "wave": "26", "gen": "F", "room": "덕고관 104L", "phone": "010-6399-9272", "email": "skdud777300@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M3", "kr": "최유현", "en": "Yuhyun Choi", "wave": "25", "gen": "M", "room": "덕고관 103L", "phone": "010-5710-4485", "email": "uhyun.choi@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M4", "kr": "이세윤", "en": "Seyoon Lee", "wave": "26", "gen": "F", "room": "창의관 207", "phone": "010-7171-5073", "email": "seyoonin@snu.ac.kr", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M5", "kr": "남형규", "en": "Hyungkyu Nam", "wave": "27", "gen": "M", "room": "창의관 306", "phone": "010-7578-9252", "email": "ericnam05@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M6", "kr": "서연우", "en": "Yonoo Seo", "wave": "27", "gen": "F", "room": "창의관 206", "phone": "010-4595-0470", "email": "yonoo0470@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M7", "kr": "김준태", "en": "Juntae Kim", "wave": "27", "gen": "M", "room": "창의관 313", "phone": "010-7319-2006", "email": "kmla221031@gmail.com", "note": ""}, {"cat": "PA", "sub": "중등부", "role": "M8", "kr": "이소명", "en": "Somyung Lee", "wave": "27", "gen": "F", "room": "창의관 211", "phone": "010-7743-7376", "email": "leesomyung123@gmail.com", "note": ""}, {"cat": "LA", "sub": "Head LA", "role": "Head LA", "kr": "조수아A", "en": "Sua Cho", "wave": "23", "gen": "F", "room": "덕고관 104R", "phone": "010-9767-2347", "email": "vnfdlv1017@gmail.com", "note": ""}, {"cat": "LA", "sub": "Department LA", "role": "MD", "kr": "황준상", "en": "Junsang Hwang", "wave": "26", "gen": "M", "room": "덕고관 406R", "phone": "010-9093-7328", "email": "junsang1214@naver.com", "note": ""}, {"cat": "LA", "sub": "Department LA", "role": "FD", "kr": "이다연", "en": "Dayeon Lee", "wave": "25", "gen": "F", "room": "덕고관 606L", "phone": "010-7192-3910", "email": "tribusy2@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL1 (2층)", "kr": "안현우", "en": "Hyunwoo Ahn", "wave": "27", "gen": "M", "room": "덕고관 406R", "phone": "010-9385-3482", "email": "hyunwooahn321@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL2 (3층)", "kr": "임기정", "en": "Kijung Im", "wave": "26", "gen": "M", "room": "덕고관 406L", "phone": "010-4496-9662", "email": "soopkj041@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL3 (4층)", "kr": "김지민", "en": "Jimin Kim", "wave": "27", "gen": "M", "room": "덕고관 406R", "phone": "010-9378-5202", "email": "jkm0066@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL4 (5층)", "kr": "백채린", "en": "Chaerin Baek", "wave": "26", "gen": "F", "room": "덕고관 606R", "phone": "010-7200-8220", "email": "chaerin050524@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL5 (6층)", "kr": "박소현", "en": "Sohyun Park", "wave": "27", "gen": "F", "room": "덕고관 606R", "phone": "010-8772-1743", "email": "psh17431@naver.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL6 (7층)", "kr": "김연우", "en": "Yeonwoo Kim", "wave": "23", "gen": "F", "room": "덕고관 104R", "phone": "010-4762-7471", "email": "yeomwoo020412@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL7 (8층)", "kr": "김현희", "en": "Hyunhee Kim", "wave": "23", "gen": "F", "room": "덕고관 104R", "phone": "010-7146-4147", "email": "hyunheek72714@gmail.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL8 (9층)", "kr": "김재연", "en": "Jaeyeon Kim", "wave": "24", "gen": "M", "room": "덕고관 906L", "phone": "010-6358-3917", "email": "penguinerj@naver.com", "note": ""}, {"cat": "LA", "sub": "층별 LA", "role": "FL9 (10층)", "kr": "한승민A", "en": "Seungmin Han", "wave": "24", "gen": "M", "room": "덕고관 906L", "phone": "010-8074-8904", "email": "hsmin03@snu.ac.kr", "note": ""}, {"cat": "LA", "sub": "상담 LA", "role": "CL1", "kr": "서형우", "en": "Hyeongwoo Seo", "wave": "26", "gen": "M", "room": "덕고관 406L", "phone": "010-4761-0545", "email": "shw508@korea.ac.kr", "note": ""}, {"cat": "LA", "sub": "상담 LA", "role": "CL2", "kr": "최유하", "en": "Yuha Choi", "wave": "26", "gen": "M", "room": "덕고관 906L", "phone": "010-8613-9263", "email": "choi255215@gmail.com", "note": ""}, {"cat": "LA", "sub": "상담 LA", "role": "CL3", "kr": "조주아", "en": "Jua Cho", "wave": "25", "gen": "F", "room": "덕고관 606L", "phone": "010-4557-0220", "email": "jchojua_0224@naver.com", "note": ""}, {"cat": "LA", "sub": "상담 LA", "role": "CL4", "kr": "송다현", "en": "Dahyun Song", "wave": "27", "gen": "F", "room": "덕고관 606R", "phone": "010-2027-1070", "email": "lucysong2027@gmail.com", "note": ""}, {"cat": "HQ", "sub": "HQ", "role": "HQ", "kr": "유호권", "en": "Hokwon Yoo", "wave": "26", "gen": "M", "room": "덕고관 103L", "phone": "010-9508-1457", "email": "hkbyoo@gmail.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Driver", "kr": "유세진", "en": "Sejin You", "wave": "24", "gen": "M", "room": "덕고관 906R", "phone": "010-4954-9681", "email": "sejindanielyou@naver.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Broadcast", "kr": "박소운", "en": "Soun Park", "wave": "25", "gen": "F", "room": "덕고관 606L", "phone": "010-9093-2544", "email": "sol.soun.park@gmail.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Broadcast", "kr": "강서현", "en": "Seohyeon Kang", "wave": "28", "gen": "F", "room": "덕고관 104L", "phone": "010-8874-8358", "email": "rkdtjgus126@naver.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Photo", "kr": "은다현", "en": "Dahyun Eun", "wave": "25", "gen": "F", "room": "덕고관 102R", "phone": "010-2758-5933", "email": "rach__61@naver.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Archery", "kr": "최정웅", "en": "Jungwoong Choi", "wave": "24", "gen": "M", "room": "창의관 310", "phone": "010-5961-1837", "email": "jungwoong.choi17@gmail.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Medical", "kr": "이우창", "en": "Woochang Lee", "wave": "23", "gen": "M", "room": "덕고관 906R", "phone": "010-9174-3487", "email": "peter019547@gmail.com", "note": ""}, {"cat": "SA", "sub": "SA", "role": "Medical", "kr": "차유빈", "en": "Yoobin Cha", "wave": "26", "gen": "F", "room": "덕고관 104L", "phone": "010-9114-1013", "email": "ybcha000@gmail.com", "note": ""}, {"cat": "TA", "sub": "GA", "role": "GA2", "kr": "안준형", "en": "Junhyoung Ahn", "wave": "25", "gen": "M", "room": "", "phone": "010-8619-3989", "email": "", "note": "7월 27일~7월 28일 25기 김민우 대신 근무"}];
@@ -569,13 +809,15 @@ document.getElementById("forms").innerHTML=FORMS.map(formCard).join("");
 document.getElementById("sheets").innerHTML=SHEETS.map(sheetCard).join("");
 document.getElementById("q").addEventListener("input",e=>search(e.target.value));
 document.getElementById("qOut").addEventListener("input",e=>searchOut(e.target.value));
-document.getElementById("reload").addEventListener("click",()=>{loadCards();loadOutings();});
+document.getElementById("reload").addEventListener("click",()=>{loadCards();loadOutings();loadHealth();});
 document.getElementById("reloadOuting").addEventListener("click",loadOutings);
 { const _oo=document.getElementById("outingOpen"); if(_oo && isSet(CONFIG.links.sheet_outing)) _oo.href=sheetOpen(CONFIG.links.sheet_outing); }
 let cardsLoaded=false;
 const _cd=document.getElementById("cardDetails");
 _cd.addEventListener("toggle",()=>{ if(_cd.open && !cardsLoaded){ cardsLoaded=true; loadCards(); }});
-tick(); setInterval(tick,30000); setInterval(loadOutings,300000);
+const _sd=document.getElementById("studentDetails"); let studentsOpened=false;
+_sd.addEventListener("toggle",()=>{ if(_sd.open && !studentsOpened){ studentsOpened=true; loadStudents(); }});
+tick(); setInterval(tick,30000); setInterval(loadOutings,300000); setInterval(loadHealth,300000);
 </script>
 </body>
 </html>
