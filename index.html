@@ -65,7 +65,20 @@
   .srow .l2{color:var(--muted);font-size:12px;margin-top:2px}
   .schip{background:#eff5fc;color:var(--blue);border-radius:7px;padding:1px 7px;font-size:11px;font-weight:600;margin-left:6px;white-space:nowrap}
   .schip.dim{background:#f1f2f5;color:#9aa1ab}
+  .schip.size{background:#efe9f7;color:#5b3e8e}
   .st-alg{color:var(--red);font-weight:600}
+  /* 급식 메뉴 */
+  .mnwrap{padding:11px 13px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .mngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-items:start}
+  .mnsec{border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+  .mnsec .mh{padding:6px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .mn-b .mh{background:var(--greenbg);color:var(--green)}
+  .mn-l .mh{background:var(--amberbg);color:var(--amber)}
+  .mn-d .mh{background:#e8f0fa;color:var(--navy)}
+  .mnitems{padding:7px 11px;font-size:12.5px;line-height:1.75}
+  .mnitems .mi{display:block}
+  .mnitems .mi.main{font-weight:700}
+  .mh .mtm{margin-left:auto;font-weight:400;font-size:10.5px;color:var(--muted);font-family:monospace}
   /* 보건실 보드 */
   .hltbl{width:100%;border-collapse:collapse;font-size:12.5px}
   .hltbl th,.hltbl td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:center;white-space:nowrap}
@@ -154,6 +167,8 @@
     .rtnext{margin-left:0}
     .rtdate{font-size:12px}
     .rtrow{font-size:13px;padding:6px 10px}
+    .mngrid{grid-template-columns:1fr}
+    .mnitems{font-size:13px}
     .rtrow .tm{font-size:10px}
     .rttbl{font-size:11.5px;min-width:700px}
     .hltbl th,.hltbl td{padding:5px 6px;font-size:11.5px}
@@ -255,6 +270,10 @@
       <div class="bh" style="background:var(--redbg);color:var(--red)">🏥 보건실 재실 현황<span id="healthCount" style="margin-left:auto;font-weight:400;font-size:12px;opacity:.85"></span></div>
       <div id="board_health"></div>
     </div>
+  </div>
+  <div class="bcard full" style="margin-top:14px">
+    <div class="bh" style="background:#eef2fb;color:var(--navy)">🍚 오늘의 급식 메뉴<span id="menuDate" style="margin-left:auto;font-weight:400;font-size:12px;opacity:.85"></span></div>
+    <div id="board_menu"></div>
   </div>
 
   <h2 class="sec">📝 입력 (구글폼)</h2>
@@ -716,7 +735,7 @@ async function loadStudents(force){
     STUDENTS=db.map(r=>{ const nm=stf(r,"한글명"); if(!nm||nm.indexOf("※")>=0) return null;
       const room=roomBy[nm]||stf(r,"배정호실")||"", cls=clsBy[nm]||stf(r,"반")||"";
       const algY=stf(r,"알레르기"), algD=stf(r,"알레르기 내용");
-      return { nm, en:stf(r,"영문명"), cls, room, fl:floorOf(room), school:stf(r,"학교명"), grade:stf(r,"학년"),
+      return { nm, en:stf(r,"영문명"), cls, room, fl:floorOf(room), school:stf(r,"학교명"), grade:stf(r,"학년"), tsize:stf(r,"T-SIZE"),
         g1:stf(r,"보호자1"), rel1:stf(r,"관계1"), ph1:stf(r,"휴대전화1"),
         alg: algD || (/유|있/.test(algY)||/^[oy]/i.test(algY)?algY:""), sib:stf(r,"자매이름") };
     }).filter(Boolean);
@@ -732,18 +751,19 @@ function stRow(s){
   const la=s.fl?(ST_LA[s.fl]||""):"";
   const clsChip=s.cls?'<span class="schip">'+esc(s.cls)+'반'+(pa?' · PA '+esc(pa):'')+'</span>':'<span class="schip dim">반 미정</span>';
   const roomChip=s.room?'<span class="schip">'+esc(s.room)+(s.fl?' ('+s.fl+'층'+(la?' · LA '+esc(la):'')+')':'')+'</span>':'';
+  const sizeChip=s.tsize?'<span class="schip size">👕 '+esc(s.tsize)+'</span>':'';
   const bits=[];
   if(s.school||s.grade) bits.push('🏫 '+esc([s.school,s.grade].filter(Boolean).join(" ")));
   if(s.g1||s.ph1) bits.push('👪 '+esc(s.g1)+(s.rel1?'('+esc(s.rel1)+')':'')+(s.ph1?' <a href="tel:'+esc(s.ph1)+'">'+esc(s.ph1)+'</a>':''));
   if(s.alg) bits.push('<span class="st-alg">⚠️ '+esc(s.alg)+'</span>');
   if(s.sib) bits.push('👫 형제자매: '+esc(s.sib));
-  return '<div class="srow"><b>'+esc(s.nm)+'</b> <span class="aen">'+esc(s.en)+'</span>'+clsChip+roomChip
+  return '<div class="srow"><b>'+esc(s.nm)+'</b> <span class="aen">'+esc(s.en)+'</span>'+clsChip+roomChip+sizeChip
     +(bits.length?'<div class="l2">'+bits.join(' · ')+'</div>':'')+'</div>';
 }
 function stRender(q){
   const el=document.getElementById("stList"), c=document.getElementById("stCount"); if(!el||!STUDENTS) return;
   q=(q||"").trim().toLowerCase();
-  const list=STUDENTS.filter(s=>!q||[s.nm,s.en,s.cls,s.room,s.school].some(v=>String(v||"").toLowerCase().includes(q)))
+  const list=STUDENTS.filter(s=>!q||[s.nm,s.en,s.cls,s.room,s.school,s.tsize].some(v=>String(v||"").toLowerCase().includes(q)))
     .slice().sort((a,b)=>(a.room||"뒤").localeCompare(b.room||"뒤","ko")||a.nm.localeCompare(b.nm,"ko"));
   el.innerHTML=list.length?list.map(stRow).join(""):'<div class="empty">검색 결과 없음</div>';
   if(c) c.textContent=(q?list.length+"명 검색됨":"총 "+STUDENTS.length+"명")+" · 반은 배정 후 자동 표시";
@@ -752,7 +772,7 @@ function renderStudents(){
   const el=document.getElementById("studentBody");
   el.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 8px">'
     +'<div class="note" id="stCount" style="margin:0"></div><button id="stReload" class="linkbtn">↻ 새로고침</button></div>'
-    +'<div class="searchbox" style="margin:0 0 8px"><input id="qSt" placeholder="🔎 이름 · 영문명 · 반 · 호실 · 학교 검색"></div>'
+    +'<div class="searchbox" style="margin:0 0 8px"><input id="qSt" placeholder="🔎 이름 · 영문명 · 반 · 호실 · 학교 · 옷 사이즈 검색"></div>'
     +'<div id="stList"></div>';
   document.getElementById("stReload").addEventListener("click",()=>loadStudents(true));
   document.getElementById("qSt").addEventListener("input",e=>stRender(e.target.value));
@@ -811,8 +831,38 @@ function renderHealth(){
 }
 /* HL-END */
 
+/* MN-BEGIN 오늘의 급식 메뉴 */
+/* 데이터 형식: { "2026-07-20": { "아침":["밥","미역국"], "점심":[...], "저녁":[...] } } */
+const MENU_TIMES={"아침":"07:00~08:00","점심":"12:00~13:00","저녁":"17:30~18:30"};
+const MENU_DATES={};
+const MN_CATS=[["아침","mn-b"],["점심","mn-l"],["저녁","mn-d"]];
+let mnShownKey="";
+function mnDispKey(now){ let k=rtKey(rtEffDate(now)); const ks=Object.keys(MENU_DATES).sort(); if(ks.length&&k<ks[0]) k=ks[0]; return k; }
+function renderMenu(){
+  const el=document.getElementById("board_menu"), lab=document.getElementById("menuDate"); if(!el) return;
+  const ks=Object.keys(MENU_DATES).sort();
+  if(!ks.length){
+    el.innerHTML='<div class="ph"><span>급식 메뉴 파일 연결 시 표시됩니다</span><span class="k">MENU_DATES</span></div>';
+    if(lab) lab.textContent=""; return; }
+  const now=new Date(), key=mnDispKey(now); mnShownKey=key;
+  const eff=new Date(key+"T00:00:00"), m=MENU_DATES[key];
+  if(lab) lab.textContent=fmt(eff)+(key===rtKey(now)?"":" (미리보기)");
+  if(!m){ el.innerHTML='<div class="ph"><span>'+fmt(eff)+' 메뉴 정보 없음</span></div>'; return; }
+  let html="";
+  for(const[cat,cls] of MN_CATS){
+    const items=m[cat]; if(!items||!items.length) continue;
+    html+='<div class="mnsec '+cls+'"><div class="mh">'+cat+'<span class="mtm">'+esc(MENU_TIMES[cat]||"")+'</span></div><div class="mnitems">'
+      +items.map((x,i)=>'<span class="mi'+(i===0?" main":"")+'">'+esc(x)+'</span>').join("")+'</div></div>';
+  }
+  el.innerHTML=html?'<div class="mnwrap"><div class="mngrid">'+html+'</div></div>'
+    :'<div class="ph"><span>'+fmt(eff)+' 메뉴 정보 없음</span></div>';
+}
+function initMenu(){ renderMenu(); setInterval(()=>{ if(mnDispKey(new Date())!==mnShownKey) renderMenu(); },15000); }
+/* MN-END */
+
 /* ---------- init ---------- */
 initRoutine();
+initMenu();
 loadOutings();
 loadHealth();
 function fullSheet(bodyId,key){ const u=CONFIG.links[key], el=document.getElementById(bodyId);
