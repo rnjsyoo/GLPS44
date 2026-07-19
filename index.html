@@ -492,7 +492,7 @@ function search(qv){
     const cnt=t=>cs.filter(c=>c.type===t).length;
     const ms=studentMatches(nm), info=ms.length===1?STUDENTDB[ms[0]]:null;
     let pi;
-    if(info){ const clsTxt=info.cls?esc(info.cls)+"반":"반 미정"; const roomTxt=info.room?esc(info.room):"호실 미정";
+    if(info){ const clsTxt=info.cls?esc(clsLabel(info.cls)):"반 미정"; const roomTxt=info.room?esc(info.room):"호실 미정";
       pi=`🛏 ${clsTxt} · ${roomTxt}${info.phone?" · "+esc(info.phone):""}`; }
     else if(ms.length>1){ pi=`동명이인 ${ms.length}명 — ‘학생 반·호실·개인정보’에서 학교로 구분해 확인`; }
     else if(isSet(CONFIG.studentDbSheet)&&STUDENTS===null){ pi=`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 학생 DB 불러오는 중…</span>`; }
@@ -714,6 +714,7 @@ function stPairs(rows,keyAnchor,valAnchor){ const h=stHeaderRow(rows,valAnchor);
   const m={}; if(ki<0||vi<0) return m;
   rows.slice(h+1).forEach(r=>{ const k=String(r[ki]==null?"":r[ki]).trim(), v=String(r[vi]==null?"":r[vi]).trim();
     if(k&&v) m[k.replace(/[^0-9]/g,"")||k]=v; }); return m; }
+function clsLabel(c){ c=String(c==null?"":c).trim(); if(!c) return ""; return /반\s*$/.test(c)?c:c+"반"; }
 function floorOf(room){ const dg=String(room==null?"":room).replace(/[^0-9]/g,""); if(!dg) return ""; const n=+dg; return n>=100?String(Math.floor(n/100)):""; }
 async function loadStudents(force){
   const el=document.getElementById("studentBody"); if(!el) return;
@@ -752,7 +753,7 @@ async function loadStudents(force){
 function stRow(s){
   const pa=s.cls?(ST_PA[String(s.cls).replace(/[^0-9]/g,"")]||""):"";
   const la=s.fl?(ST_LA[s.fl]||""):"";
-  const clsChip=s.cls?'<span class="schip">'+esc(s.cls)+'반'+(pa?' · PA '+esc(pa):'')+'</span>':'<span class="schip dim">반 미정</span>';
+  const clsChip=s.cls?'<span class="schip">'+esc(clsLabel(s.cls))+(pa?' · PA '+esc(pa):'')+'</span>':'<span class="schip dim">반 미정</span>';
   const roomChip=s.room?'<span class="schip">'+esc(s.room)+(s.fl?' ('+s.fl+'층'+(la?' · LA '+esc(la):'')+')':'')+'</span>':'';
   const sizeChip=s.tsize?'<span class="schip size">👕 '+esc(s.tsize)+'</span>':'';
   const bits=[];
@@ -763,11 +764,18 @@ function stRow(s){
   return '<div class="srow"><b>'+esc(s.nm)+'</b> <span class="aen">'+esc(s.en)+'</span>'+clsChip+roomChip+sizeChip
     +(bits.length?'<div class="l2">'+bits.join(' · ')+'</div>':'')+'</div>';
 }
+function clsNum(v){ return String(v==null?"":v).replace(/[^0-9]/g,""); }
 function stRender(q){
   const el=document.getElementById("stList"), c=document.getElementById("stCount"); if(!el||!STUDENTS) return;
   q=(q||"").trim().toLowerCase();
-  const list=STUDENTS.filter(s=>!q||[s.nm,s.en,s.cls,s.room,s.school,s.tsize].some(v=>String(v||"").toLowerCase().includes(q)))
-    .slice().sort((a,b)=>(a.room||"뒤").localeCompare(b.room||"뒤","ko")||a.nm.localeCompare(b.nm,"ko"));
+  let filt, mode="";
+  const mCls=q.match(/^(\d+)\s*반$/);           /* "3반" */
+  if(mCls){ const n=mCls[1]; filt=s=>clsNum(s.cls)===n; mode="cls"; }
+  else if(/^\d+$/.test(q)){ const n=q;          /* 순수 숫자 = 반(정확) 또는 호실(정확) */
+    filt=s=>clsNum(s.cls)===n||clsNum(s.room)===n; mode="num"; }
+  else { filt=s=>!q||[s.nm,s.en,s.school,s.tsize,clsLabel(s.cls)].some(v=>String(v||"").toLowerCase().includes(q)); }
+  const list=STUDENTS.filter(filt)
+    .slice().sort((a,b)=>((mode?clsNum(a.cls).padStart(3,"0"):"")+(a.room||"뒤")).localeCompare((mode?clsNum(b.cls).padStart(3,"0"):"")+(b.room||"뒤"),"ko")||a.nm.localeCompare(b.nm,"ko"));
   el.innerHTML=list.length?list.map(stRow).join(""):'<div class="empty">검색 결과 없음</div>';
   if(c) c.textContent=(q?list.length+"명 검색됨":"총 "+STUDENTS.length+"명")+" · 반은 배정 후 자동 표시";
 }
@@ -775,7 +783,7 @@ function renderStudents(){
   const el=document.getElementById("studentBody");
   el.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 8px">'
     +'<div class="note" id="stCount" style="margin:0"></div><button id="stReload" class="linkbtn">↻ 새로고침</button></div>'
-    +'<div class="searchbox" style="margin:0 0 8px"><input id="qSt" placeholder="🔎 이름 · 영문명 · 반 · 호실 · 학교 · 옷 사이즈 검색"></div>'
+    +'<div class="searchbox" style="margin:0 0 8px"><input id="qSt" placeholder="🔎 이름 · 반(예: 3반) · 호실 · 학교 · 옷 사이즈 검색"></div>'
     +'<div id="stList"></div>';
   document.getElementById("stReload").addEventListener("click",()=>loadStudents(true));
   document.getElementById("qSt").addEventListener("input",e=>stRender(e.target.value));
@@ -823,7 +831,7 @@ function renderHealth(){
     if((h.per||"").indexOf("퇴실")>=0){ latest.delete(key); return; }
     latest.set(key,h); });
   const clsNo=h=>{ const c=h.cls||(STUDENTDB[h.nm]&&STUDENTDB[h.nm].cls)||""; const n=String(c).replace(/[^0-9]/g,""); return n?+n:999; };
-  const clsTxt=h=>{ const c=h.cls||(STUDENTDB[h.nm]&&STUDENTDB[h.nm].cls)||""; if(!c) return "—"; return /^\d+$/.test(String(c).trim())?String(c).trim()+"반":esc(String(c)); };
+  const clsTxt=h=>{ const c=h.cls||(STUDENTDB[h.nm]&&STUDENTDB[h.nm].cls)||""; return c?esc(clsLabel(c)):"—"; };
   const list=[...latest.values()].sort((a,b)=>rtKey(a.date).localeCompare(rtKey(b.date))||clsNo(a)-clsNo(b)||a.nm.localeCompare(b.nm,"ko"));
   if(list.length && STUDENTS===null && !ST_LOADING && isSet(CONFIG.studentDbSheet)) loadStudents();
   const tn=list.filter(h=>rtKey(h.date)===todayKey).length;
