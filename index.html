@@ -87,25 +87,14 @@
   .hllist{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto}
   .hlcard{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fff}
   .hlcard.today{border-color:#f1c9c9;background:#fdf7f7}
-  .hltop{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:13px}
-  .hltop b{font-size:13.5px}
-  .hltop .hldate{font-size:11px;color:var(--muted);font-family:monospace}
+  .hldate{font-size:11px;color:var(--muted);font-family:monospace;margin-bottom:4px}
   .hlcard.today .hldate{color:var(--red);font-weight:700}
-  .hltop .hlcls{background:#eff5fc;color:var(--blue);border-radius:7px;padding:1px 7px;font-size:11px;font-weight:600}
-  .hltop .hlloc{color:var(--ink);font-size:12px}
-  .hltop .hlper{background:#fbeaea;color:var(--red);border-radius:7px;padding:1px 7px;font-size:11px;font-weight:600}
-  .hltop .hlout{margin-left:auto;font-size:11px;border:1px solid #e3b7b7;background:#fff;color:var(--red);border-radius:7px;padding:3px 9px;cursor:pointer;white-space:nowrap}
-  .hltop .hlout:hover{background:var(--redbg)}
-  .hlen{margin-top:3px;font-size:11.5px;color:#6b7480}
-  .hlmodal{position:fixed;inset:0;background:rgba(20,28,45,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
-  .hlbox{background:#fff;border-radius:14px;max-width:340px;width:100%;padding:18px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
-  .hlq{font-size:14px;color:var(--ink);line-height:1.5}
-  .hlqs{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.55}
-  .hlqe{color:#8a94a3}
-  .hlbtns{display:flex;gap:8px;margin-top:15px}
-  .hlbtns button{flex:1;padding:9px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--line)}
-  .hlbtns .hlno{background:#fff;color:var(--muted)}
-  .hlbtns .hlyes{background:var(--red);color:#fff;border-color:var(--red)}
+  .hlrow{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:13.5px}
+  .hlrow + .hlrow{margin-top:5px}
+  .hlrow b{font-size:14px}
+  .hlcls{background:#eff5fc;color:var(--blue);border-radius:7px;padding:1px 8px;font-size:12px;font-weight:600}
+  .hlloc{color:var(--ink);font-size:13px}
+  .hlper{background:#fbeaea;color:var(--red);border-radius:7px;padding:1px 8px;font-size:12px;font-weight:600;margin-left:auto}
   /* metrics */
   .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .metric{border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
@@ -835,17 +824,6 @@ function hlParse(per){
   const f=HL_PERIODS[idx[0]], l=HL_PERIODS[idx[idx.length-1]];
   const end=Math.max.apply(null, idx.map(function(i){return HL_PERIODS[i][2];}));
   return { ko:(f===l?f[0]:f[0]+"~"+l[0]), en:(f===l?f[3]:f[3]+"–"+l[3]), end:end }; }
-function hlLoadCO(){ try{ return JSON.parse(localStorage.getItem("glps44_health_checkout")||"{}"); }catch(e){ return {}; } }
-function hlSaveCO(m){ const td=rtKey(new Date()), o={}; for(const k in m){ const dk=(k.split("|")[1]||""); if(!dk||dk>=td) o[k]=m[k]; } try{ localStorage.setItem("glps44_health_checkout",JSON.stringify(o)); }catch(e){} }
-function healthCheckout(name,dateKey){
-  const ov=document.createElement("div"); ov.className="hlmodal";
-  ov.innerHTML='<div class="hlbox"><div class="hlq"><b>'+esc(name)+'</b> 학생을 <b>퇴실</b> 처리할까요?<div class="hlqs">예정 시간과 달리 나간 경우 · 퇴실이 맞으면 ‘예’를 눌러주세요.<br><span class="hlqe">Check this student out of the sick bay?</span></div></div><div class="hlbtns"><button type="button" class="hlno">아니오 No</button><button type="button" class="hlyes">예, 퇴실 Yes</button></div></div>';
-  document.body.appendChild(ov);
-  const close=function(){ ov.remove(); };
-  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });
-  ov.querySelector(".hlno").onclick=close;
-  ov.querySelector(".hlyes").onclick=function(){ const m=hlLoadCO(); m[name+"|"+dateKey]=Date.now(); hlSaveCO(m); close(); renderHealth(); };
-}
 async function loadHealth(){
   const el=document.getElementById("board_health"); if(!el) return;
   if(!isSet(CONFIG.healthSheet)){
@@ -867,7 +845,7 @@ function renderHealth(){
     :'<span class="note" style="margin:0">등록 폼 미설정 — <b>links.form_health</b></span>';
   const head='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+btn+'<button class="linkbtn" onclick="loadHealth()">↻ 새로고침</button></div>';
   if(HL_ERR){ el.innerHTML='<div class="hlwrap">'+head+'<div class="err">보건실 데이터 로드 실패: '+esc(HL_ERR)+'</div></div>'; if(cnt) cnt.textContent=""; return; }
-  const now=new Date(), todayKey=rtKey(now), nowMin=now.getHours()*60+now.getMinutes(), CO=hlLoadCO();
+  const now=new Date(), todayKey=rtKey(now), nowMin=now.getHours()*60+now.getMinutes();
   const latest=new Map();
   HEALTH.forEach(function(h){ if(!h.date) return; const dk=rtKey(h.date); if(dk<todayKey) return;
     const key=h.nm+"|"+dk;
@@ -878,7 +856,6 @@ function renderHealth(){
   let list=[];
   latest.forEach(function(h,key){ const dk=rtKey(h.date), info=hlParse(h.per);
     if(dk===todayKey && info.end<=nowMin) return;          /* 자동 퇴실: 재실 시간 종료 */
-    const co=CO[key]; if(co && co>=(h.ts||0)) return;      /* 수동 퇴실 */
     list.push(h); });
   list.sort(function(a,b){ return rtKey(a.date).localeCompare(rtKey(b.date))||clsNo(a)-clsNo(b)||a.nm.localeCompare(b.nm,"ko"); });
   if(list.length && STUDENTS===null && !ST_LOADING && isSet(CONFIG.studentDbSheet)) loadStudents();
@@ -887,15 +864,16 @@ function renderHealth(){
   if(!list.length){ el.innerHTML='<div class="hlwrap">'+head+'<div class="empty" style="padding:16px">보건실 재실 학생 없음 · No students in sick bay</div></div>'; return; }
   const card=function(h){ const st=STUDENTDB[h.nm]||{}, cls=h.cls||st.cls||"", cn=clsNum(cls), info=hlParse(h.per),
       isToday=rtKey(h.date)===todayKey, en=st.en||h.nm, locEN=HL_LOC_EN[h.loc]||h.loc||"";
-    const ko='<span class="hldate">'+fmt(h.date)+'</span><b>'+esc(h.nm)+'</b>'
-      +(cls?'<span class="hlcls">'+esc(clsLabel(cls))+'</span>':'')
-      +(h.loc?'<span class="hlloc">'+esc(h.loc)+'</span>':'')
-      +'<span class="hlper">'+esc(info.ko)+'</span>';
-    const enln='Class '+(cn||"—")+' · '+esc(en)+(locEN?' · '+esc(locEN):'')+' · '+esc(info.en);
-    const out=isToday?'<button class="hlout" type="button" data-nm="'+esc(h.nm)+'" data-dk="'+esc(rtKey(h.date))+'">퇴실 Out</button>':'';
-    return '<div class="hlcard'+(isToday?' today':'')+'"><div class="hltop">'+ko+out+'</div><div class="hlen">'+enln+'</div></div>'; };
+    const koCls=cls?'<span class="hlcls">'+esc(clsLabel(cls))+'</span>':'';
+    const enCls='<span class="hlcls">Class '+(cn||"—")+'</span>';
+    const koLoc=h.loc?'<span class="hlloc">'+esc(h.loc)+'</span>':'';
+    const enLoc=locEN?'<span class="hlloc">'+esc(locEN)+'</span>':'';
+    return '<div class="hlcard'+(isToday?' today':'')+'">'
+      +'<div class="hldate">'+esc(fmt(h.date))+'</div>'
+      +'<div class="hlrow"><b>'+esc(h.nm)+'</b>'+koCls+koLoc+'<span class="hlper">🕒 '+esc(info.ko)+'</span></div>'
+      +'<div class="hlrow"><b>'+esc(en)+'</b>'+enCls+enLoc+'<span class="hlper">🕒 '+esc(info.en)+'</span></div>'
+      +'</div>'; };
   el.innerHTML='<div class="hlwrap">'+head+'<div class="hllist">'+list.map(card).join("")+'</div></div>';
-  el.querySelectorAll(".hlout").forEach(function(b){ b.onclick=function(){ healthCheckout(b.dataset.nm,b.dataset.dk); }; });
 }
 /* HL-END */
 
