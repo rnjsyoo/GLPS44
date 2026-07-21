@@ -377,12 +377,12 @@ const CONFIG = {
   healthSheet: "https://docs.google.com/spreadsheets/d/1JoQZ5BFev-kC2Ko-nLeeHmYkxG1Q99d_FQpwqECWXmM/edit",
   /* 외출외박 응답 시트 CSV — '현재 외부 학생' 보드가 승인 여부·날짜로 자동 계산됨.
      시트 공유가 '링크가 있는 모든 사용자: 뷰어'여야 동작. 안 되면 웹에 게시 CSV 주소로 교체. */
-  outingDataCsv: "https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/gviz/tq?tqx=out:csv",
+  outingDataCsv: "https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/gviz/tq?tqx=out:csv&headers=1",
   links: {
     board_routine:"", board_outside:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
-    form_counsel:"", form_health:"https://forms.gle/tutRBoPtygM6GcjNA",
+    form_counsel:"https://docs.google.com/forms/d/e/1FAIpQLSeXF7saLDoC6248YIANlXYky0sVnEetdaDXqWrYctZLYZATEA/viewform", form_health:"https://forms.gle/tutRBoPtygM6GcjNA",
     sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
     sheet_routine:"", sheet_weekend:"", sheet_students:"", sheet_assistant:""
   }
@@ -535,14 +535,20 @@ function parseDMY(str){ const m=(str||"").trim().match(/(\d{1,2})[\/.\-](\d{1,2}
   const d=new Date(y,mon-1,day); return isNaN(d.getTime())?null:d; }
 function isApproved(v){ return /^\s*(yes|y|승인|approved|o|ok|true|1|가능)\s*$/i.test((v||"").trim()); }
 function normalizeOuting(objs){
-  return objs.map(r=>({
-    name:(getf(r,"학생이름")||"").trim(),
-    cls:(getf(r,"반Class")||"").trim(),
-    depDate:parseDMY(getf(r,"나가는날짜")), retDate:parseDMY(getf(r,"들어오는날짜")),
-    depTime:(getf(r,"나가는시간")||"").trim(), retTime:(getf(r,"들어오는시간")||"").trim(),
-    reason:(getf(r,"사유")||"").trim(), assistant:(getf(r,"어시스턴트")||"").trim(),
-    approved:isApproved(getf(r,"승인")), cat:approvalCat(getf(r,"승인"))
-  })).filter(o=>o.name);
+  const generic = objs.length>0 && Object.keys(objs[0]).some(k=>/^Column\s*\d+/i.test(k));
+  return objs.map(r=>{
+    let name,cls,dep,depT,ret,retT,reason,asst,appr;
+    if(generic){ const v=Object.values(r);   /* gviz가 헤더를 못 잡아 Column N으로 준 경우 위치로 매핑 */
+      asst=v[1]; cls=v[4]; name=v[3]; dep=v[5]; depT=v[6]; ret=v[7]; retT=v[8]; reason=v[9]; appr=v[10];
+      if(/학생|이름|Name/.test(name||"") && /승인|여부/.test(appr||"")) name="";  /* 밀려든 헤더행 스킵 */
+    } else {
+      name=getf(r,"학생이름"); cls=getf(r,"반Class"); dep=getf(r,"나가는날짜"); depT=getf(r,"나가는시간");
+      ret=getf(r,"들어오는날짜"); retT=getf(r,"들어오는시간"); reason=getf(r,"사유"); asst=getf(r,"어시스턴트"); appr=getf(r,"승인");
+    }
+    return { name:(name||"").trim(), cls:(cls||"").trim(), depDate:parseDMY(dep), retDate:parseDMY(ret),
+      depTime:(depT||"").trim(), retTime:(retT||"").trim(), reason:(reason||"").trim(), assistant:(asst||"").trim(),
+      approved:isApproved(appr), cat:approvalCat(appr) };
+  }).filter(o=>o.name);
 }
 function outStatus(o,today){ if(!o.approved||!o.depDate||!o.retDate) return null;
   const t=today.getTime(),d=o.depDate.getTime(),r=o.retDate.getTime();
