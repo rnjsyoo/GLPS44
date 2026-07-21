@@ -82,6 +82,22 @@
   .mnnight{display:flex;align-items:center;gap:7px;background:#efe9f7;border:1px solid #ddd0ef;border-radius:10px;padding:7px 12px;font-size:12.5px;color:#4b2e7a}
   .mnnight .nl{font-weight:700}
   .mnnight .mtm{margin-left:auto;font-size:10.5px;color:#8a7bab;font-family:monospace}
+  /* 동아리 배정 */
+  .dgsec{margin-bottom:15px}
+  .dgh{font-size:13px;font-weight:800;padding:0 0 6px;margin-bottom:9px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:7px}
+  .dgh-c{color:var(--navy)} .dgh-e{color:#8a5a1b}
+  .dgh .dgc{font-size:11px;font-weight:700;color:var(--muted);background:#f1f2f5;border-radius:20px;padding:1px 9px}
+  .dggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+  .dgcard{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:11px;padding:10px 13px;background:#fff}
+  .dgcard.ev{border-left-color:#c8912f}
+  .dgtop{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+  .dgname{font-size:15px;font-weight:800;letter-spacing:-.3px}
+  .dgcap{margin-left:auto;font-size:11px;font-weight:700;color:var(--green);background:var(--greenbg);border-radius:7px;padding:2px 8px;white-space:nowrap}
+  .dgmeta{margin:-3px 0 7px}
+  .dgloc{font-size:12px;color:var(--muted)}
+  .dgstaff{display:flex;flex-wrap:wrap;gap:5px}
+  .dgchip{font-size:12px;font-weight:600;color:var(--navy);background:#eef2fb;border-radius:7px;padding:2px 9px}
+  .dgchip.dim{color:#9aa1ab;background:#f1f2f5;font-weight:500}
   /* 보건실 보드 */
   .hlwrap{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
   .hllist{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto}
@@ -352,6 +368,12 @@
       <div class="body" id="routineBody"></div>
     </details>
   </div>
+  <div class="gcard" style="margin-bottom:13px">
+    <details id="dongariDetails">
+      <summary><span class="i">🎨</span><span class="lbl">동아리 배정 (주말 프로그램)</span><span class="tag">동아리 · 행사 ▾</span></summary>
+      <div class="body" id="dongariBody"></div>
+    </details>
+  </div>
   <div class="grid" id="sheets"></div>
 
   <footer>학생 개인정보는 구글 시트 공유 권한으로 관리됩니다. · GLPS 44 HQ</footer>
@@ -394,7 +416,6 @@ const FORMS = [
   { key:"form_health",  icon:"🏥", title:"보건실 재실 등록" },
 ];
 const SHEETS = [
-  { key:"sheet_weekend",  icon:"🎨", title:"동아리 배정 (주말 프로그램)" },
 ];
 
 /* ---------- 공통 ---------- */
@@ -915,6 +936,63 @@ function renderMenu(){
 function initMenu(){ renderMenu(); setInterval(()=>{ if(mnDispKey(new Date())!==mnShownKey) renderMenu(); },15000); }
 /* MN-END */
 
+/* DG-BEGIN 동아리 배정 (구글시트 실시간 + 디자인 렌더) */
+const DONGARI_INFO={"체스":{cap:"30",loc:""},"바둑":{cap:"20",loc:""},"스도쿠":{cap:"20",loc:""},"보드게임":{cap:"20",loc:""},"배드민턴":{cap:"25",loc:"체육관"},"농구":{cap:"20",loc:"체육관"},"댄스":{cap:"20",loc:"충무관 3층"},"종이접기":{cap:"20",loc:""},"영화감상":{cap:"72",loc:"다산관 소강당"},"그림그리기":{cap:"20",loc:""},"영화제작":{cap:"20",loc:""},"수학":{cap:"20",loc:""},"독서":{cap:"20",loc:""},"사물놀이":{cap:"20",loc:"함영당"},"축구":{cap:"22",loc:"풋살장 / 운동장"},"동아시아 문화":{cap:"30",loc:""}};
+let DG_CLUBS=[], DG_EVENTS=[], DG_LOADED=false, DG_ERR="";
+function dgClean(s){ return String(s==null?"":s).replace(/\d+(?=(\s|및|\(|$))/g,"").replace(/\s+/g," ").trim(); }
+async function loadDongari(force){
+  const el=document.getElementById("dongariBody"); if(!el) return;
+  const u=CONFIG.links.sheet_weekend;
+  if(!isSet(u)){ el.innerHTML='<div class="miss">링크 미설정 — <span class="k">links.sheet_weekend</span></div>'; return; }
+  if(DG_LOADED&&!force){ renderDongari(); return; }
+  el.innerHTML='<div class="empty">동아리 배정 불러오는 중…</div>';
+  try{ const{id}=parseSheet(u);
+    const rows=parseCSV(await fetchCsv("https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:csv"));
+    const clubs=[], events=[];
+    rows.forEach(function(r){ const act=(r[0]||"").trim(); if(!act) return;
+      if(/^Column\s*\d+/i.test(act)) return;
+      if(act.indexOf("주말업무")>=0) return;
+      const need=(r[2]||"").trim();
+      const staff=[r[3],r[4],r[5],r[6],r[7]].map(function(x){return (x||"").trim();}).filter(Boolean);
+      if(!/\d/.test(need) && !staff.length) return;
+      const base=dgClean(act);
+      if(DONGARI_INFO[base]) clubs.push({name:base, cap:DONGARI_INFO[base].cap, loc:DONGARI_INFO[base].loc, staff:staff});
+      else events.push({name:base, staff:staff});
+    });
+    DG_CLUBS=clubs; DG_EVENTS=events; DG_LOADED=true; DG_ERR="";
+  }catch(e){ DG_ERR=e.message; }
+  renderDongari();
+}
+function dgCard(x,isClub){
+  const cap=(isClub&&x.cap)?'<span class="dgcap">정원 '+esc(x.cap)+'</span>':'';
+  const loc=isClub?'<div class="dgmeta"><span class="dgloc">📍 '+(x.loc?esc(x.loc):'장소 미정')+'</span></div>':'';
+  const staff=x.staff.length?x.staff.map(function(s){return '<span class="dgchip">'+esc(s)+'</span>';}).join(''):'<span class="dgchip dim">미배정</span>';
+  return '<div class="dgcard'+(isClub?'':' ev')+'"><div class="dgtop"><span class="dgname">'+esc(x.name)+'</span>'+cap+'</div>'+loc+'<div class="dgstaff">'+staff+'</div></div>';
+}
+function dgRender(q){
+  const list=document.getElementById("dgList"); if(!list) return;
+  q=(q||"").trim().toLowerCase();
+  const mt=function(x){ return !q||x.name.toLowerCase().indexOf(q)>=0||x.staff.some(function(s){return s.toLowerCase().indexOf(q)>=0;}); };
+  const cl=DG_CLUBS.filter(mt), ev=DG_EVENTS.filter(mt);
+  let html="";
+  if(cl.length) html+='<div class="dgsec"><div class="dgh dgh-c">🎨 동아리 <span class="dgc">'+cl.length+'</span></div><div class="dggrid">'+cl.map(function(x){return dgCard(x,true);}).join("")+'</div></div>';
+  if(ev.length) html+='<div class="dgsec"><div class="dgh dgh-e">🎪 기획 · 행사 · 인솔 <span class="dgc">'+ev.length+'</span></div><div class="dggrid">'+ev.map(function(x){return dgCard(x,false);}).join("")+'</div></div>';
+  list.innerHTML=html||'<div class="empty">검색 결과 없음</div>';
+}
+function renderDongari(){
+  const el=document.getElementById("dongariBody"); if(!el) return;
+  if(DG_ERR){ el.innerHTML='<div class="err">동아리 시트를 불러오지 못했어요 ('+esc(DG_ERR)+'). 시트 공유(링크 뷰어)를 확인하세요.</div>'; return; }
+  const open=isSet(CONFIG.links.sheet_weekend)?'<a class="open" style="margin:0" target="_blank" rel="noopener" href="'+sheetOpen(CONFIG.links.sheet_weekend)+'">📄 원본 시트 열기 ↗</a>':'<span></span>';
+  el.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 8px">'+open+'<button id="dgReload" class="linkbtn">↻ 새로고침</button></div>'
+    +'<div class="searchbox" style="margin:0 0 9px"><input id="qDg" placeholder="🔎 동아리 · 역할 · 어시 이름 검색"></div>'
+    +'<div class="note" style="margin:0 2px 11px">담당 어시는 시트에서 자동 반영 · 장소/정원은 참조값</div>'
+    +'<div id="dgList"></div>';
+  document.getElementById("dgReload").addEventListener("click",function(){ loadDongari(true); });
+  document.getElementById("qDg").addEventListener("input",function(e){ dgRender(e.target.value); });
+  dgRender("");
+}
+/* DG-END */
+
 /* ---------- init ---------- */
 initRoutine();
 initMenu();
@@ -966,6 +1044,8 @@ const _cd=document.getElementById("cardDetails");
 _cd.addEventListener("toggle",()=>{ if(_cd.open && !cardsLoaded){ cardsLoaded=true; loadCards(); }});
 const _sd=document.getElementById("studentDetails"); let studentsOpened=false;
 _sd.addEventListener("toggle",()=>{ if(_sd.open && !studentsOpened){ studentsOpened=true; loadStudents(); }});
+const _dg=document.getElementById("dongariDetails"); let dongariOpened=false;
+_dg.addEventListener("toggle",()=>{ if(_dg.open && !dongariOpened){ dongariOpened=true; loadDongari(); }});
 tick(); setInterval(tick,30000); setInterval(loadOutings,300000); setInterval(loadHealth,300000);
 </script>
 </body>
