@@ -68,6 +68,7 @@
   .schip.size{background:#efe9f7;color:#5b3e8e}
   .st-alg{color:var(--red);font-weight:600}
   .st-pickup{background:#e6f7f3;color:#0d7a67;border-radius:7px;padding:1px 7px;font-size:11px;font-weight:600;white-space:nowrap}
+  .st-pickup.ov{background:#fff2df;color:#a15c12}
   /* 급식 메뉴 */
   .mnwrap{padding:11px 13px;display:flex;flex-direction:column;gap:9px;flex:1}
   .mngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-items:start}
@@ -405,7 +406,7 @@ const CONFIG = {
     board_routine:"", board_outside:"",
     form_card:"https://forms.gle/LhzfiRAL8NsimUnF7",
     form_outing:"https://forms.gle/3XVsqptEcrhgJtUW6",
-    form_counsel:"https://docs.google.com/forms/d/e/1FAIpQLSeXF7saLDoC6248YIANlXYky0sVnEetdaDXqWrYctZLYZATEA/viewform", form_health:"https://forms.gle/tutRBoPtygM6GcjNA",
+    form_counsel:"https://docs.google.com/forms/d/e/1FAIpQLSeXF7saLDoC6248YIANlXYky0sVnEetdaDXqWrYctZLYZATEA/viewform", form_health:"https://forms.gle/tutRBoPtygM6GcjNA", form_vehicle:"https://forms.gle/uF2ncZiDzbutcxUf8",
     sheet_outing:"https://docs.google.com/spreadsheets/d/1ICZ0A8p7e_e0kNhph4LYyTwg2NfmcPTmT8rFuqcUR2Y/edit?usp=sharing",
     sheet_routine:"", sheet_weekend:"https://docs.google.com/spreadsheets/d/1BAvYMy5CuSGxZkZaVIGgXeYzGXMxo5D6JrBaY6Lt3_E/edit?usp=sharing", sheet_students:"", sheet_assistant:""
   }
@@ -415,6 +416,7 @@ const FORMS = [
   { key:"form_outing", icon:"📝", title:"외출외박 신청" },
   { key:"form_counsel", icon:"💬", title:"LA 상담 신청" },
   { key:"form_health",  icon:"🏥", title:"보건실 재실 등록" },
+  { key:"form_vehicle", icon:"🚐", title:"학생 차량지원 신청" },
 ];
 const SHEETS = [
 ];
@@ -515,7 +517,7 @@ function search(qv){
     const ms=studentMatches(nm), info=ms.length===1?STUDENTDB[ms[0]]:null;
     let pi;
     if(info){ const clsTxt=info.cls?esc(clsLabel(info.cls)):"반 미정"; const roomTxt=info.room?esc(info.room):"호실 미정";
-      pi=`🛏 ${clsTxt} · ${roomTxt}${info.phone?" · "+esc(info.phone):""}`; }
+      pi=`🛏 ${clsTxt} · ${roomTxt}`; }
     else if(ms.length>1){ pi=`동명이인 ${ms.length}명 — ‘학생 반·호실·개인정보’에서 학교로 구분해 확인`; }
     else if(isSet(CONFIG.studentDbSheet)&&STUDENTS===null){ pi=`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 학생 DB 불러오는 중…</span>`; }
     else { pi=`반 ${esc(cs[0].cls||"-")} <span style="color:#b9844b">· 호실은 학생 DB에서 이름이 일치할 때 표시</span>`; }
@@ -768,10 +770,9 @@ async function loadStudents(force){
       const room=roomBy[nm]||stf(r,"배정호실")||"", cls=clsBy[nm]||stf(r,"반")||"";
       const algY=stf(r,"알레르기"), algD=stf(r,"알레르기 내용");
       return { nm, en:stf(r,"영문명"), cls, room, fl:floorOf(room), school:stf(r,"학교명"), grade:stf(r,"학년"), tsize:stf(r,"T-SIZE"),
-        g1:stf(r,"보호자1"), rel1:stf(r,"관계1"), ph1:stf(r,"휴대전화1"),
         alg: algD || (/유|있/.test(algY)||/^[oy]/i.test(algY)?algY:""), sib:stf(r,"자매이름") };
     }).filter(Boolean);
-    STUDENTDB={}; STUDENTS.forEach(s=>{ STUDENTDB[s.nm]={cls:s.cls,room:s.room,phone:s.ph1,en:s.en}; });
+    STUDENTDB={}; STUDENTS.forEach(s=>{ STUDENTDB[s.nm]={cls:s.cls,room:s.room,en:s.en}; });
     refreshCardSearch();
     renderHealth();
     renderStudents();
@@ -779,6 +780,9 @@ async function loadStudents(force){
   finally{ ST_LOADING=false; }
 }
 function pickupSlot(fl){ const f=+String(fl==null?"":fl).replace(/[^0-9]/g,""); if([2,4,5,9,10].indexOf(f)>=0) return "18:25~18:35"; if([3,6,7,8].indexOf(f)>=0) return "18:35~18:45"; return ""; }
+/* 형제자매 사유로 다른 층에서 불출하는 예외 학생 — 값 = 실제 불출 층(그 층 시간표 적용), res = 거주 층(동명이인 방어) */
+const PICKUP_OVERRIDE = { "송현지":{res:7,pick:5}, "권아진":{res:5,pick:6}, "최한영":{res:3,pick:2}, "조우주":{res:9,pick:3}, "전예지":{res:7,pick:5}, "이아린":{res:6,pick:5} };
+function pickupInfo(s){ const o=PICKUP_OVERRIDE[String(s.nm||"").split("-")[0]]; const myfl=+String(s.fl==null?"":s.fl).replace(/[^0-9]/g,""); if(o && (!myfl || myfl===o.res)){ const t=pickupSlot(o.pick); if(t) return {time:t,floor:o.pick,ov:true}; } const t=pickupSlot(s.fl); return t?{time:t,floor:null,ov:false}:null; }
 function stRow(s){
   const pa=s.cls?(ST_PA[String(s.cls).replace(/[^0-9]/g,"")]||""):"";
   const la=s.fl?(ST_LA[s.fl]||""):"";
@@ -787,9 +791,8 @@ function stRow(s){
   const sizeChip=s.tsize?'<span class="schip size">👕 '+esc(s.tsize)+'</span>':'';
   const bits=[];
   if(s.school||s.grade) bits.push('🏫 '+esc([s.school,s.grade].filter(Boolean).join(" ")));
-  const pk=pickupSlot(s.fl);
-  if(s.g1||s.ph1) bits.push('👪 '+esc(s.g1)+(s.rel1?'('+esc(s.rel1)+')':'')+(s.ph1?' <a href="tel:'+esc(s.ph1)+'">'+esc(s.ph1)+'</a>':'')+(pk?' <span class="st-pickup">📱 휴대폰 불출(화·목·토) '+pk+'</span>':''));
-  else if(pk) bits.push('<span class="st-pickup">📱 휴대폰 불출(화·목·토) '+pk+'</span>');
+  const pk=pickupInfo(s);
+  if(pk) bits.push('<span class="st-pickup'+(pk.ov?' ov':'')+'"'+(pk.ov?' title="형제자매 사유로 다른 층에서 불출"':'')+'>📱 휴대폰 불출(화·목·토) '+(pk.floor?pk.floor+'층 ':'')+pk.time+'</span>');
   if(s.alg) bits.push('<span class="st-alg">⚠️ '+esc(s.alg)+'</span>');
   if(s.sib) bits.push('👫 형제자매: '+esc(s.sib));
   return '<div class="srow"><b>'+esc(s.nm)+'</b> <span class="aen">'+esc(s.en)+'</span>'+clsChip+roomChip+sizeChip
