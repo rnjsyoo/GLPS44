@@ -615,17 +615,24 @@ function cardTotals(){
     if(c.type==="Reward") m[k].r++; else if(c.type==="Warning") m[k].w++; });
   return Object.keys(m).map(function(k){return m[k];});
 }
+/* 반 오름차순 → 반 내 이름 가나다순 (반 없음은 맨 뒤) */
+function byClassThenName(a,b){
+  var na=parseInt(clsNum(a.cls),10), nb=parseInt(clsNum(b.cls),10);
+  if(isNaN(na)) na=Infinity; if(isNaN(nb)) nb=Infinity;
+  if(na!==nb) return na-nb;
+  return a.name.localeCompare(b.name,"ko");
+}
 var CARD_RULES=[
-  {cls:"r", label:"🏆 상장 수여", cond:"Reward 10회 이상", pick:function(s){return s.r>=10;}, val:function(s){return s.r;}},
-  {cls:"w1",label:"🚫 상장 제외", cond:"Warning 3회 이상", pick:function(s){return s.w>=3;},  val:function(s){return s.w;}},
-  {cls:"w2",label:"📄 스페셜 시트", cond:"Warning 5회 이상", pick:function(s){return s.w>=5;},  val:function(s){return s.w;}},
-  {cls:"w3",label:"⛔ 징계", cond:"Warning 10회 이상", pick:function(s){return s.w>=10;}, val:function(s){return s.w;}}
+  {cls:"r", label:"🏆 상장 수여", cond:"Reward 10회 이상", pick:function(s){return s.r>=10;}, val:function(s){return s.r;}, sort:byClassThenName},
+  {cls:"w1",label:"🚫 상장 제외", cond:"Warning 3회 이상", pick:function(s){return s.w>=3;},  val:function(s){return s.w;}, sort:byClassThenName},
+  {cls:"w2",label:"📄 스페셜 시트", cond:"Warning 5회 이상", pick:function(s){return s.w>=5;},  val:function(s){return s.w;}, sort:byClassThenName},
+  {cls:"w3",label:"⛔ 징계", cond:"Warning 10회 이상", pick:function(s){return s.w>=10;}, val:function(s){return s.w;}, sort:byClassThenName}
 ];
 function renderThresholds(){
   var el=document.getElementById("cardThresholds"); if(!el) return;
   var tot=cardTotals();
   var grid=CARD_RULES.map(function(rule){
-    var list=tot.filter(rule.pick).sort(function(a,b){return rule.val(b)-rule.val(a)||a.name.localeCompare(b.name,"ko");});
+    var list=tot.filter(rule.pick).sort(rule.sort||byClassThenName);
     var chips=list.length?list.map(function(s){
       return '<span class="cthr-chip">'+esc(s.name)+(s.cls?'<span class="cthr-cls">'+esc(clsNum(s.cls))+'반</span>':'')+'<span class="cthr-n">'+rule.val(s)+'</span></span>';
     }).join(""):'<span class="cthr-none">해당 없음</span>';
