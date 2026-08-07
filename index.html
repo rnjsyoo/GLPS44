@@ -1093,10 +1093,11 @@ function stRender(q){
   else if(/^\d+$/.test(q)){ const n=q;          /* 순수 숫자 = 반(정확) 또는 호실(정확) */
     filt=s=>clsNum(s.cls)===n||clsNum(s.room)===n; mode="num"; }
   else { filt=s=>!q||[s.nm,s.en,s.school,s.tsize,clsLabel(s.cls)].some(v=>String(v||"").toLowerCase().includes(q)); }
+  const stKey=s=>{ const n=clsNum(s.cls); return n?n.padStart(3,"0"):"999"; };   /* 반 오름차순, 반 미정은 맨 뒤 */
   const list=STUDENTS.filter(filt)
-    .slice().sort((a,b)=>((mode?clsNum(a.cls).padStart(3,"0"):"")+(a.room||"뒤")).localeCompare((mode?clsNum(b.cls).padStart(3,"0"):"")+(b.room||"뒤"),"ko")||a.nm.localeCompare(b.nm,"ko"));
+    .slice().sort((a,b)=>stKey(a).localeCompare(stKey(b))||String(a.nm||"").localeCompare(String(b.nm||""),"ko"));
   el.innerHTML=list.length?list.map(stRow).join(""):'<div class="empty">검색 결과 없음</div>';
-  if(c) c.textContent=(q?list.length+"명 검색됨":"총 "+STUDENTS.length+"명")+" · 반은 배정 후 자동 표시";
+  if(c) c.textContent=(q?list.length+"명 검색됨":"총 "+STUDENTS.length+"명")+" · 반 → 이름 가나다순";
 }
 function renderStudents(){
   const el=document.getElementById("studentBody");
